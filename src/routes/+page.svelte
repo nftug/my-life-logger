@@ -4,10 +4,17 @@
 
   let name = $state('')
   let greetMsg = $state('')
+  let isError = $state(false)
 
   async function handleGreet(event: Event) {
     event.preventDefault()
-    greetMsg = await greet({ name })
+    try {
+      greetMsg = await greet({ name })
+      isError = false
+    } catch (error) {
+      greetMsg = error as string
+      isError = true
+    }
   }
 </script>
 
@@ -25,7 +32,9 @@
     <Button type="submit">Greet</Button>
   </form>
 
-  {#if greetMsg}
+  {#if greetMsg && !isError}
     <p class="mt-4 text-sm font-medium text-emerald-700">{greetMsg}</p>
+  {:else if isError}
+    <p class="mt-4 text-sm font-medium text-red-700">{greetMsg}</p>
   {/if}
 </div>
