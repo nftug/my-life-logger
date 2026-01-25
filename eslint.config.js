@@ -2,6 +2,7 @@ import js from '@eslint/js'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import prettier from 'eslint-config-prettier'
+import globals from 'eslint-globals'
 import svelte from 'eslint-plugin-svelte'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -27,6 +28,7 @@ export default [
   {
     files: ['**/*.{ts}'],
     languageOptions: {
+      ...globals.browser,
       parser: tsParser,
       parserOptions: {
         ecmaVersion: 'latest',
@@ -45,6 +47,7 @@ export default [
   {
     files: ['**/*.svelte'],
     languageOptions: {
+      ...globals.browser,
       parser: svelteParser,
       parserOptions: {
         parser: tsParser,
