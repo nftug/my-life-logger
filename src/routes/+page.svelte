@@ -1,6 +1,5 @@
 <script lang="ts">
   import { greet } from '@/generated/commands'
-  import { Button, Input, Label } from 'flowbite-svelte'
 
   let name = $state('')
   let greetMsg = $state('')
@@ -26,10 +25,12 @@
 
   <form class="flex flex-wrap items-end gap-3" onsubmit={handleGreet}>
     <div class="min-w-55 flex-1">
-      <Label class="mb-2 block" for="greet-input">Name</Label>
-      <Input id="greet-input" placeholder="Enter a name..." bind:value={name} />
+      <label class="input">
+        <span class="label">Name</span>
+        <input type="text" bind:value={name} placeholder="Enter your name" required />
+      </label>
     </div>
-    <Button type="submit">Greet</Button>
+    <button type="submit" class="btn">Greet</button>
   </form>
 
   {#if greetMsg && !isError}
