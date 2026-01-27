@@ -2,9 +2,10 @@
   "extends": "./tsconfig.json",
   "include": [
     "src/**/*.ts",
-    "src/**/*.svelte",
+    "src/**/*.tsx",
     "src/**/*.js",
     "src/**/*.mjs",
-    "src/**/*.cjs"
+    "src/**/*.cjs",
+    "vite.config.ts"
   ]
 }
