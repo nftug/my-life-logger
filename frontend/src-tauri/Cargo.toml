@@ -1,11 +1,11 @@
 [package]
 name = "my-life-logger"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+version.workspace = true
+authors.workspace = true
+description.workspace = true
 
 [lib]
 # The `_lib` suffix may seem redundant but it is necessary
@@ -19,17 +19,10 @@ tauri-build = { version = "2", features = [] }
 tauri-typegen = "0.4.0"
 
 [dependencies]
+domain.workspace = true
+infrastructure.workspace = true
+application.workspace = true
+
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
-serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-
-[profile.dev.build-override]
-incremental = false
-
-[profile.release]
-lto = true
-opt-level = "z"
-codegen-units = 1
-panic = "abort"
-strip = "symbols"
