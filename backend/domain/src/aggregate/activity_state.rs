@@ -56,15 +56,20 @@ impl ActivityState {
         category_id: CategoryId,
         description: Option<String>,
     ) -> Result<(), DomainError> {
-        let time_range = TimeRange::new_active(ctx.now);
+        self.new_active_activity(ctx, category_id, description, ctx.now)
+    }
+
+    pub fn new_active_activity(
+        &mut self,
+        ctx: &AuditContext,
+        category_id: CategoryId,
+        description: Option<String>,
+        started_at: DateTime<Utc>,
+    ) -> Result<(), DomainError> {
+        let time_range = TimeRange::new_active(started_at);
         let new_activity = Activity::new(category_id, description, time_range);
 
-        if self.active_activity.is_some() {
-            return Err(DomainError::AlreadyActive);
-        }
-        self.ensure_no_overlap(ctx, &new_activity)?;
-
-        self.active_activity = Some(new_activity);
+        self.place_activity(ctx, new_activity)?;
         Ok(())
     }
 
@@ -75,7 +80,7 @@ impl ActivityState {
             .ok_or(DomainError::NoActiveActivity)?;
 
         updated.stop(ctx)?;
-        self.save_completed(ctx, updated)?;
+        self.place_activity(ctx, updated)?;
         Ok(())
     }
 
@@ -94,9 +99,8 @@ impl ActivityState {
             .cloned()
             .ok_or(DomainError::NoActiveActivity)?;
         updated.edit(category_id, description, time_range);
-        self.ensure_no_overlap(ctx, &updated)?;
 
-        self.active_activity = Some(updated);
+        self.place_activity(ctx, updated)?;
         Ok(())
     }
 
@@ -120,7 +124,7 @@ impl ActivityState {
         let time_range = TimeRange::try_new(started_at, Some(ended_at))?;
         let new_activity = Activity::new(category_id, description, time_range);
 
-        self.save_completed(ctx, new_activity)?;
+        self.place_activity(ctx, new_activity)?;
         Ok(())
     }
 
@@ -138,9 +142,8 @@ impl ActivityState {
 
         let time_range = TimeRange::try_new(started_at, Some(ended_at))?;
         updated.edit(category_id, description, time_range);
-        self.ensure_no_overlap(ctx, &updated)?;
 
-        self.completed_activities[index] = updated;
+        self.place_activity(ctx, updated)?;
         Ok(())
     }
 
@@ -184,13 +187,31 @@ impl ActivityState {
             .ok_or(DomainError::ActivityNotFound)
     }
 
-    fn save_completed(
+    fn place_activity(
         &mut self,
         ctx: &AuditContext,
-        activity: Activity,
+        new_activity: Activity,
     ) -> Result<(), DomainError> {
-        self.ensure_no_overlap(ctx, &activity)?;
-        self.completed_activities.push(activity);
+        self.ensure_no_overlap(ctx, &new_activity)?;
+
+        if new_activity.is_active() {
+            if let Some(ref current_active) = self.active_activity
+                && current_active.id() != new_activity.id()
+            {
+                return Err(DomainError::AlreadyActive);
+            }
+
+            self.active_activity = Some(new_activity);
+        } else if let Some(index) = self
+            .completed_activities
+            .iter()
+            .position(|a| a.id() == new_activity.id())
+        {
+            self.completed_activities[index] = new_activity;
+        } else {
+            self.completed_activities.push(new_activity);
+        }
+
         Ok(())
     }
 }
