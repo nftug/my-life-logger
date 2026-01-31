@@ -13,3 +13,4 @@ serde.workspace = true
 chrono.workspace = true
 thiserror.workspace = true
 itertools.workspace = true
+async-trait.workspace = true
