@@ -1,9 +1,11 @@
+use chrono::{DateTime, NaiveDate, Utc};
+
 use crate::{
-    audit::audit_context::AuditContext,
+    audit::AuditContext,
     define_id,
     entity::category::CategoryId,
-    shared::{entity_id::EntityIdTrait, errors::DomainError},
-    values::time_range::TimeRange,
+    shared::{EntityIdTrait, errors::DomainError},
+    values::TimeRange,
 };
 
 define_id!(ActivityId);
@@ -26,21 +28,40 @@ impl Activity {
     pub fn description(&self) -> Option<&str> {
         self.description.as_deref()
     }
-    pub fn time_range(&self) -> &TimeRange {
-        &self.time_range
+    pub fn is_active(&self) -> bool {
+        self.time_range.is_active()
+    }
+    pub fn is_completed(&self) -> bool {
+        self.time_range.is_completed()
+    }
+    pub fn duration_seconds(&self, ctx: &AuditContext) -> i64 {
+        self.time_range.duration_seconds(ctx)
+    }
+    pub fn overlaps_with(&self, ctx: &AuditContext, other: &Activity) -> bool {
+        self.id != other.id && self.time_range.overlaps_with(ctx, &other.time_range)
+    }
+    pub fn is_in_date(&self, ctx: &AuditContext, date: NaiveDate) -> bool {
+        self.time_range.is_in_date(ctx, date)
+    }
+    pub fn started_at(&self) -> DateTime<Utc> {
+        self.time_range.started_at()
+    }
+    pub fn ended_at(&self) -> Option<DateTime<Utc>> {
+        self.time_range.ended_at()
     }
 
     pub fn hydrate(
         id: ActivityId,
         category_id: CategoryId,
         description: Option<String>,
-        time_range: TimeRange,
+        started_at: DateTime<Utc>,
+        ended_at: Option<DateTime<Utc>>,
     ) -> Self {
         Self {
             id,
             category_id,
             description,
-            time_range,
+            time_range: TimeRange::hydrate(started_at, ended_at),
         }
     }
 
@@ -62,7 +83,7 @@ impl Activity {
             return Err(DomainError::AlreadyStopped);
         }
 
-        self.time_range = TimeRange::try_new(self.time_range.started_at(), Some(ctx.now()))?;
+        self.time_range = TimeRange::try_new_completed(self.time_range.started_at(), ctx.now())?;
         Ok(())
     }
 
@@ -75,25 +96,5 @@ impl Activity {
         self.time_range = new_time_range;
         self.category_id = new_category_id;
         self.description = new_description;
-    }
-
-    pub fn is_active(&self) -> bool {
-        self.time_range.is_active()
-    }
-
-    pub fn is_completed(&self) -> bool {
-        self.time_range.is_completed()
-    }
-
-    pub fn duration_seconds(&self, ctx: &AuditContext) -> i64 {
-        let end_time = self.time_range.ended_at().unwrap_or(ctx.now());
-        (end_time - self.time_range.started_at()).num_seconds()
-    }
-
-    pub fn overlaps_with(&self, ctx: &AuditContext, other: &Activity) -> bool {
-        let self_ended_at = self.time_range.ended_at().unwrap_or(ctx.now());
-        let other_ended_at = other.time_range.ended_at().unwrap_or(ctx.now());
-        !(self_ended_at <= other.time_range.started_at()
-            || self.time_range.started_at() >= other_ended_at)
     }
 }

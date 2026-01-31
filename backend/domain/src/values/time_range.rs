@@ -1,6 +1,6 @@
 use chrono::{DateTime, NaiveDate, Utc};
 
-use crate::{audit::audit_context::AuditContext, shared::errors::DomainError};
+use crate::{audit::AuditContext, shared::errors::DomainError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimeRange {
@@ -23,18 +23,16 @@ impl TimeRange {
         }
     }
 
-    pub fn try_new(
+    pub fn try_new_completed(
         started_at: DateTime<Utc>,
-        ended_at: Option<DateTime<Utc>>,
+        ended_at: DateTime<Utc>,
     ) -> Result<Self, DomainError> {
-        if let Some(ended_at) = ended_at
-            && started_at >= ended_at
-        {
+        if started_at >= ended_at {
             return Err(DomainError::InvalidTimeRange);
         }
         Ok(Self {
             started_at,
-            ended_at,
+            ended_at: Some(ended_at),
         })
     }
 
@@ -62,5 +60,17 @@ impl TimeRange {
         };
 
         date >= start_date && date <= end_date
+    }
+
+    pub fn duration_seconds(&self, ctx: &AuditContext) -> i64 {
+        let end_time = self.ended_at.unwrap_or(ctx.now());
+        (end_time - self.started_at).num_seconds()
+    }
+
+    pub fn overlaps_with(&self, ctx: &AuditContext, other: &TimeRange) -> bool {
+        let self_end = self.ended_at.unwrap_or(ctx.now());
+        let other_end = other.ended_at.unwrap_or(ctx.now());
+
+        !(self.started_at >= other_end || other.started_at >= self_end)
     }
 }

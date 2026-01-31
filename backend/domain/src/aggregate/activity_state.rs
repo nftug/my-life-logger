@@ -1,11 +1,8 @@
 use crate::{
     audit::audit_context::AuditContext,
-    entity::{
-        activity::{Activity, ActivityId},
-        category::CategoryId,
-    },
+    entity::{Activity, ActivityId, CategoryId},
     shared::errors::DomainError,
-    values::time_range::TimeRange,
+    values::TimeRange,
 };
 use chrono::{DateTime, NaiveDate, Utc};
 use itertools::Itertools;
@@ -24,14 +21,14 @@ impl ActivityState {
     pub fn completed(&self) -> Vec<&Activity> {
         self.completed
             .iter()
-            .sorted_by_key(|a| std::cmp::Reverse(a.time_range().started_at()))
+            .sorted_by_key(|a| std::cmp::Reverse(a.started_at()))
             .collect()
     }
     pub fn all(&self) -> Vec<&Activity> {
         self.completed
             .iter()
             .chain(self.active.iter())
-            .sorted_by_key(|a| std::cmp::Reverse(a.time_range().started_at()))
+            .sorted_by_key(|a| std::cmp::Reverse(a.started_at()))
             .collect()
     }
     pub fn date(&self) -> NaiveDate {
@@ -43,10 +40,7 @@ impl ActivityState {
         date: NaiveDate,
         activities_all: Vec<Activity>,
     ) -> Result<Self, DomainError> {
-        if activities_all
-            .iter()
-            .any(|a| !a.time_range().is_in_date(ctx, date))
-        {
+        if activities_all.iter().any(|a| !a.is_in_date(ctx, date)) {
             return Err(DomainError::HydrationError(
                 "Activity does not belong to the specified date".to_string(),
             ));
@@ -125,74 +119,30 @@ impl ActivityState {
         started_at: DateTime<Utc>,
         ended_at: DateTime<Utc>,
     ) -> Result<(), DomainError> {
-        let index = self.ensure_find_completed_activity_index(activity_id);
-        let time_range = TimeRange::try_new(started_at, Some(ended_at))?;
+        let time_range = TimeRange::try_new_completed(started_at, ended_at)?;
 
-        match index {
-            Ok(idx) => {
-                let mut updated = self.completed[idx].clone();
-                updated.edit(category_id, description, time_range);
-                self.place_activity(ctx, updated)?;
+        let existing_opt = self.completed.iter_mut().find(|a| a.id() == activity_id);
+        let activity = match existing_opt {
+            Some(existing) => {
+                existing.edit(category_id, description, time_range);
+                existing.clone()
             }
-            Err(_) => {
-                let new_activity =
-                    Activity::hydrate(activity_id, category_id, description, time_range);
-                self.place_activity(ctx, new_activity)?;
-            }
-        }
+            None => Activity::new(category_id, description, time_range),
+        };
 
+        self.place_activity(ctx, activity)?;
         Ok(())
     }
 
     pub fn delete_completed(&mut self, activity_id: ActivityId) -> Result<(), DomainError> {
-        let index = self.ensure_find_completed_activity_index(activity_id)?;
-        self.completed.remove(index);
-        Ok(())
-    }
-
-    fn ensure_no_overlap(
-        &self,
-        ctx: &AuditContext,
-        activity: &Activity,
-    ) -> Result<(), DomainError> {
-        if let Some(ref active) = self.active
-            && activity.id() != active.id()
-            && activity.overlaps_with(ctx, active)
-        {
-            Err(DomainError::ActivityOverlap)
-        } else if self
+        let index = self
             .completed
             .iter()
-            .any(|a| activity.id() != a.id() && activity.overlaps_with(ctx, a))
-        {
-            Err(DomainError::ActivityOverlap)
-        } else {
-            Ok(())
-        }
-    }
-
-    fn ensure_single_date(
-        &self,
-        ctx: &AuditContext,
-        activity: &Activity,
-    ) -> Result<(), DomainError> {
-        if !activity.time_range().is_in_date(ctx, self.date) {
-            Err(DomainError::HydrationError(
-                "Activity does not belong to the specified date".to_string(),
-            ))
-        } else {
-            Ok(())
-        }
-    }
-
-    fn ensure_find_completed_activity_index(
-        &self,
-        activity_id: ActivityId,
-    ) -> Result<usize, DomainError> {
-        self.completed
-            .iter()
             .position(|a| a.id() == activity_id)
-            .ok_or(DomainError::ActivityNotFound)
+            .ok_or(DomainError::ActivityNotFound)?;
+
+        self.completed.remove(index);
+        Ok(())
     }
 
     fn place_activity(
@@ -222,5 +172,33 @@ impl ActivityState {
         }
 
         Ok(())
+    }
+
+    fn ensure_no_overlap(
+        &self,
+        ctx: &AuditContext,
+        new_activity: &Activity,
+    ) -> Result<(), DomainError> {
+        match self
+            .all()
+            .iter()
+            .any(|a| a.overlaps_with(ctx, new_activity))
+        {
+            true => Err(DomainError::ActivityOverlap),
+            false => Ok(()),
+        }
+    }
+
+    fn ensure_single_date(
+        &self,
+        ctx: &AuditContext,
+        new_activity: &Activity,
+    ) -> Result<(), DomainError> {
+        match new_activity.is_in_date(ctx, self.date) {
+            true => Ok(()),
+            false => Err(DomainError::HydrationError(
+                "Activity does not belong to the specified date".to_string(),
+            )),
+        }
     }
 }

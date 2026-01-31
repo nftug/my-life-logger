@@ -1,6 +1,6 @@
 use chrono::{DateTime, FixedOffset, Local, NaiveDate, Utc};
 
-use crate::audit::clock::Clock;
+use crate::audit::Clock;
 
 #[derive(Debug, Clone)]
 pub enum AppTimeZone {

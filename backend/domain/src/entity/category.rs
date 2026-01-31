@@ -1,4 +1,4 @@
-use crate::{define_id, shared::entity_id::EntityIdTrait};
+use crate::{define_id, shared::EntityIdTrait};
 
 define_id!(CategoryId);
 
