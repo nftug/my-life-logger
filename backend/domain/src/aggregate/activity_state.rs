@@ -53,7 +53,7 @@ impl ActivityState {
         &mut self,
         ctx: &AuditContext,
         category_id: CategoryId,
-        description: String,
+        description: Option<String>,
     ) -> Result<(), DomainError> {
         let new_activity = Activity::new(ctx, category_id, description);
 
@@ -83,7 +83,7 @@ impl ActivityState {
         &mut self,
         ctx: &AuditContext,
         category_id: CategoryId,
-        description: String,
+        description: Option<String>,
         started_at: DateTime<Utc>,
     ) -> Result<(), DomainError> {
         let mut active_activity = self
@@ -108,7 +108,7 @@ impl ActivityState {
         ctx: &AuditContext,
         activity_id: ActivityId,
         category_id: CategoryId,
-        description: String,
+        description: Option<String>,
         started_at: DateTime<Utc>,
         ended_at: DateTime<Utc>,
     ) -> Result<(), DomainError> {

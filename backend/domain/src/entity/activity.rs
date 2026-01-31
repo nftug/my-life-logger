@@ -13,7 +13,7 @@ define_id!(ActivityId);
 pub struct Activity {
     id: ActivityId,
     category_id: CategoryId,
-    description: String,
+    description: Option<String>,
     started_at: DateTime<Utc>,
     ended_at: Option<DateTime<Utc>>,
 }
@@ -25,8 +25,8 @@ impl Activity {
     pub fn category_id(&self) -> CategoryId {
         self.category_id
     }
-    pub fn description(&self) -> &str {
-        &self.description
+    pub fn description(&self) -> Option<&str> {
+        self.description.as_deref()
     }
     pub fn started_at(&self) -> DateTime<Utc> {
         self.started_at
@@ -38,7 +38,7 @@ impl Activity {
     pub fn hydrate(
         id: ActivityId,
         category_id: CategoryId,
-        description: String,
+        description: Option<String>,
         started_at: DateTime<Utc>,
         ended_at: Option<DateTime<Utc>>,
     ) -> Self {
@@ -51,7 +51,7 @@ impl Activity {
         }
     }
 
-    pub fn new(ctx: &AuditContext, category_id: CategoryId, description: String) -> Self {
+    pub fn new(ctx: &AuditContext, category_id: CategoryId, description: Option<String>) -> Self {
         Self {
             id: ActivityId::new(),
             category_id,
@@ -76,7 +76,7 @@ impl Activity {
     pub fn edit(
         &mut self,
         new_category_id: CategoryId,
-        new_description: String,
+        new_description: Option<String>,
         new_started_at: DateTime<Utc>,
         new_ended_at: Option<DateTime<Utc>>,
     ) -> Result<(), DomainError> {
