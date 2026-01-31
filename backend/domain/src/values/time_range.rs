@@ -53,23 +53,23 @@ impl TimeRange {
     }
 
     pub fn is_in_date(&self, ctx: &AuditContext, date: NaiveDate) -> bool {
-        let start_date = ctx.tz().get_naive_date(self.started_at);
+        let start_date = ctx.tz().naive_date(self.started_at);
         let end_date = match self.ended_at {
-            Some(ended_at) => ctx.tz().get_naive_date(ended_at),
+            Some(ended_at) => ctx.tz().naive_date(ended_at),
             None => ctx.today(),
         };
 
         date >= start_date && date <= end_date
     }
 
-    pub fn duration_seconds(&self, ctx: &AuditContext) -> i64 {
-        let end_time = self.ended_at.unwrap_or(ctx.now());
+    pub fn duration_seconds(&self, ended_at_filler: DateTime<Utc>) -> i64 {
+        let end_time = self.ended_at.unwrap_or(ended_at_filler);
         (end_time - self.started_at).num_seconds()
     }
 
-    pub fn overlaps_with(&self, ctx: &AuditContext, other: &TimeRange) -> bool {
-        let self_end = self.ended_at.unwrap_or(ctx.now());
-        let other_end = other.ended_at.unwrap_or(ctx.now());
+    pub fn overlaps_with(&self, other: &TimeRange, ended_at_filler: DateTime<Utc>) -> bool {
+        let self_end = self.ended_at.unwrap_or(ended_at_filler);
+        let other_end = other.ended_at.unwrap_or(ended_at_filler);
 
         !(self.started_at >= other_end || other.started_at >= self_end)
     }

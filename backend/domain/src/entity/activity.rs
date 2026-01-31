@@ -34,11 +34,14 @@ impl Activity {
     pub fn is_completed(&self) -> bool {
         self.time_range.is_completed()
     }
-    pub fn duration_seconds(&self, ctx: &AuditContext) -> i64 {
-        self.time_range.duration_seconds(ctx)
+    pub fn duration_seconds(&self, ended_at_filler: DateTime<Utc>) -> i64 {
+        self.time_range.duration_seconds(ended_at_filler)
     }
-    pub fn overlaps_with(&self, ctx: &AuditContext, other: &Activity) -> bool {
-        self.id != other.id && self.time_range.overlaps_with(ctx, &other.time_range)
+    pub fn overlaps_with(&self, other: &Activity, ended_at_filler: DateTime<Utc>) -> bool {
+        self.id != other.id
+            && self
+                .time_range
+                .overlaps_with(&other.time_range, ended_at_filler)
     }
     pub fn is_in_date(&self, ctx: &AuditContext, date: NaiveDate) -> bool {
         self.time_range.is_in_date(ctx, date)

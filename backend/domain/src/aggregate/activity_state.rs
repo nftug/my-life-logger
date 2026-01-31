@@ -34,6 +34,9 @@ impl ActivityState {
     pub fn date(&self) -> NaiveDate {
         self.date
     }
+    pub fn duration_seconds_of(&self, ctx: &AuditContext, activity: &Activity) -> i64 {
+        activity.duration_seconds(self.ended_at_filler(ctx))
+    }
 
     pub fn hydrate(
         ctx: &AuditContext,
@@ -182,7 +185,7 @@ impl ActivityState {
         match self
             .all()
             .iter()
-            .any(|a| a.overlaps_with(ctx, new_activity))
+            .any(|a| a.overlaps_with(new_activity, self.ended_at_filler(ctx)))
         {
             true => Err(DomainError::ActivityOverlap),
             false => Ok(()),
@@ -199,6 +202,14 @@ impl ActivityState {
             false => Err(DomainError::HydrationError(
                 "Activity does not belong to the specified date".to_string(),
             )),
+        }
+    }
+
+    fn ended_at_filler(&self, ctx: &AuditContext) -> DateTime<Utc> {
+        if self.date == ctx.today() {
+            ctx.now()
+        } else {
+            ctx.tz().start_of_next_date(self.date)
         }
     }
 }
