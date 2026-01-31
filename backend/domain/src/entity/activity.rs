@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 
 use crate::{
+    audit::audit_context::AuditContext,
     define_id,
     entity::category::CategoryId,
     shared::{entity_id::EntityIdTrait, errors::DomainError},
@@ -50,25 +51,25 @@ impl Activity {
         }
     }
 
-    pub fn new(category_id: CategoryId, description: String, started_at: DateTime<Utc>) -> Self {
+    pub fn new(ctx: &AuditContext, category_id: CategoryId, description: String) -> Self {
         Self {
             id: ActivityId::new(),
             category_id,
             description,
-            started_at,
+            started_at: ctx.now,
             ended_at: None,
         }
     }
 
-    pub fn stop(&mut self, ended_at: DateTime<Utc>) -> Result<(), DomainError> {
-        if ended_at < self.started_at {
+    pub fn stop(&mut self, ctx: &AuditContext) -> Result<(), DomainError> {
+        if ctx.now < self.started_at {
             return Err(DomainError::InvalidTimeRange);
         }
         if self.ended_at.is_some() {
             return Err(DomainError::AlreadyStopped);
         }
 
-        self.ended_at = Some(ended_at);
+        self.ended_at = Some(ctx.now);
         Ok(())
     }
 
@@ -96,14 +97,14 @@ impl Activity {
         self.ended_at.is_none()
     }
 
-    pub fn duration_seconds(&self, now: DateTime<Utc>) -> i64 {
-        let end_time = self.ended_at.unwrap_or(now);
+    pub fn duration_seconds(&self, ctx: &AuditContext) -> i64 {
+        let end_time = self.ended_at.unwrap_or(ctx.now);
         (end_time - self.started_at).num_seconds()
     }
 
-    pub fn overlaps_with(&self, other: &Activity, now: DateTime<Utc>) -> bool {
-        let self_ended_at = self.ended_at.unwrap_or(now);
-        let other_ended_at = other.ended_at.unwrap_or(now);
+    pub fn overlaps_with(&self, ctx: &AuditContext, other: &Activity) -> bool {
+        let self_ended_at = self.ended_at.unwrap_or(ctx.now);
+        let other_ended_at = other.ended_at.unwrap_or(ctx.now);
         !(self_ended_at <= other.started_at || self.started_at >= other_ended_at)
     }
 }

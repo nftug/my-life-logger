@@ -1,5 +1,9 @@
 use crate::{
-    entity::activity::{Activity, ActivityId},
+    audit::audit_context::AuditContext,
+    entity::{
+        activity::{Activity, ActivityId},
+        category::CategoryId,
+    },
     shared::errors::DomainError,
 };
 use chrono::{DateTime, Utc};
@@ -45,14 +49,18 @@ impl ActivityState {
         })
     }
 
-    pub fn start(&mut self, new_activity: Activity, now: DateTime<Utc>) -> Result<(), DomainError> {
+    pub fn start(
+        &mut self,
+        ctx: &AuditContext,
+        category_id: CategoryId,
+        description: String,
+    ) -> Result<(), DomainError> {
+        let new_activity = Activity::new(ctx, category_id, description);
+
         if self.active_activity.is_some() {
             return Err(DomainError::AlreadyActive);
         }
-        if !new_activity.is_active() {
-            return Err(DomainError::AlreadyStopped);
-        }
-        if self.overlaps_with_existing_activities(&new_activity, now) {
+        if self.overlaps_with_existing_activities(ctx, &new_activity) {
             return Err(DomainError::ActivityOverlap);
         }
 
@@ -60,57 +68,67 @@ impl ActivityState {
         Ok(())
     }
 
-    pub fn stop(&mut self, ended_at: DateTime<Utc>) -> Result<(), DomainError> {
+    pub fn stop(&mut self, ctx: &AuditContext) -> Result<(), DomainError> {
         let mut active_activity = self
             .active_activity
             .take()
             .ok_or(DomainError::NoActiveActivity)?;
 
-        active_activity.stop(ended_at)?;
+        active_activity.stop(ctx)?;
         self.completed_activities.push(active_activity);
         Ok(())
     }
 
     pub fn edit_active_activity(
         &mut self,
-        new_active_activity: Activity,
-        now: DateTime<Utc>,
+        ctx: &AuditContext,
+        category_id: CategoryId,
+        description: String,
+        started_at: DateTime<Utc>,
     ) -> Result<(), DomainError> {
-        if self.active_activity.is_none() {
-            return Err(DomainError::NoActiveActivity);
-        }
-        if !new_active_activity.is_active() {
-            return Err(DomainError::AlreadyStopped);
-        }
-        if new_active_activity.id() != self.active_activity.as_ref().unwrap().id() {
-            return Err(DomainError::GenericError(
-                "Edited active activity ID does not match current active activity ID".to_string(),
-            ));
-        }
-        if self.overlaps_with_existing_activities(&new_active_activity, now) {
+        let mut active_activity = self
+            .active_activity
+            .as_ref()
+            .cloned()
+            .ok_or(DomainError::NoActiveActivity)?;
+
+        active_activity.edit(category_id, description, started_at, None)?;
+
+        if self.overlaps_with_existing_activities(ctx, &active_activity) {
             return Err(DomainError::ActivityOverlap);
         }
 
-        self.active_activity = Some(new_active_activity);
+        self.active_activity = Some(active_activity);
+
         Ok(())
     }
 
     pub fn edit_completed_activity(
         &mut self,
-        new_completed_activity: Activity,
-        now: DateTime<Utc>,
+        ctx: &AuditContext,
+        activity_id: ActivityId,
+        category_id: CategoryId,
+        description: String,
+        started_at: DateTime<Utc>,
+        ended_at: DateTime<Utc>,
     ) -> Result<(), DomainError> {
-        if new_completed_activity.is_active() {
-            return Err(DomainError::AlreadyActive);
-        }
-        if self.overlaps_with_existing_activities(&new_completed_activity, now) {
+        let mut completed_activity = self
+            .completed_activities
+            .iter()
+            .find(|a| a.id() == activity_id)
+            .cloned()
+            .ok_or(DomainError::ActivityNotFound)?;
+
+        completed_activity.edit(category_id, description, started_at, Some(ended_at))?;
+
+        if self.overlaps_with_existing_activities(ctx, &completed_activity) {
             return Err(DomainError::ActivityOverlap);
         }
 
         let index = self
-            .find_completed_activity_index(new_completed_activity.id())
+            .find_completed_activity_index(completed_activity.id())
             .ok_or(DomainError::ActivityNotFound)?;
-        self.completed_activities[index] = new_completed_activity;
+        self.completed_activities[index] = completed_activity;
 
         Ok(())
     }
@@ -136,10 +154,10 @@ impl ActivityState {
         Ok(())
     }
 
-    fn overlaps_with_existing_activities(&self, activity: &Activity, now: DateTime<Utc>) -> bool {
+    fn overlaps_with_existing_activities(&self, ctx: &AuditContext, activity: &Activity) -> bool {
         if let Some(ref active) = self.active_activity
             && activity.id() != active.id()
-            && activity.overlaps_with(active, now)
+            && activity.overlaps_with(ctx, active)
         {
             return true;
         }
@@ -147,7 +165,7 @@ impl ActivityState {
         if self
             .completed_activities
             .iter()
-            .any(|a| activity.id() != a.id() && activity.overlaps_with(a, now))
+            .any(|a| activity.id() != a.id() && activity.overlaps_with(ctx, a))
         {
             return true;
         }
