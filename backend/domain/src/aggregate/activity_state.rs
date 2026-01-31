@@ -5,6 +5,7 @@ use crate::{
         category::CategoryId,
     },
     shared::errors::DomainError,
+    values::time_range::TimeRange,
 };
 use chrono::{DateTime, Utc};
 use itertools::Itertools;
@@ -55,7 +56,8 @@ impl ActivityState {
         category_id: CategoryId,
         description: Option<String>,
     ) -> Result<(), DomainError> {
-        let new_activity = Activity::new(ctx, category_id, description);
+        let time_range = TimeRange::new_active(ctx.now);
+        let new_activity = Activity::new(category_id, description, time_range);
 
         if self.active_activity.is_some() {
             return Err(DomainError::AlreadyActive);
@@ -73,7 +75,7 @@ impl ActivityState {
             .ok_or(DomainError::NoActiveActivity)?;
 
         updated.stop(ctx)?;
-        self.completed_activities.push(updated);
+        self.save_completed(ctx, updated)?;
         Ok(())
     }
 
@@ -84,16 +86,41 @@ impl ActivityState {
         description: Option<String>,
         started_at: DateTime<Utc>,
     ) -> Result<(), DomainError> {
+        let time_range = TimeRange::new_active(started_at);
+
         let mut updated = self
             .active_activity
             .as_ref()
             .cloned()
             .ok_or(DomainError::NoActiveActivity)?;
-
-        updated.edit(category_id, description, started_at, None)?;
+        updated.edit(category_id, description, time_range);
         self.ensure_no_overlap(ctx, &updated)?;
 
         self.active_activity = Some(updated);
+        Ok(())
+    }
+
+    pub fn cancel_active_activity(&mut self) -> Result<(), DomainError> {
+        if self.active_activity.is_none() {
+            return Err(DomainError::NoActiveActivity);
+        }
+
+        self.active_activity = None;
+        Ok(())
+    }
+
+    pub fn add_completed_activity(
+        &mut self,
+        ctx: &AuditContext,
+        category_id: CategoryId,
+        description: Option<String>,
+        started_at: DateTime<Utc>,
+        ended_at: DateTime<Utc>,
+    ) -> Result<(), DomainError> {
+        let time_range = TimeRange::try_new(started_at, Some(ended_at))?;
+        let new_activity = Activity::new(category_id, description, time_range);
+
+        self.save_completed(ctx, new_activity)?;
         Ok(())
     }
 
@@ -107,21 +134,13 @@ impl ActivityState {
         ended_at: DateTime<Utc>,
     ) -> Result<(), DomainError> {
         let index = self.ensure_find_completed_activity_index(activity_id)?;
-
         let mut updated = self.completed_activities[index].clone();
-        updated.edit(category_id, description, started_at, Some(ended_at))?;
+
+        let time_range = TimeRange::try_new(started_at, Some(ended_at))?;
+        updated.edit(category_id, description, time_range);
         self.ensure_no_overlap(ctx, &updated)?;
 
         self.completed_activities[index] = updated;
-        Ok(())
-    }
-
-    pub fn cancel_active_activity(&mut self) -> Result<(), DomainError> {
-        if self.active_activity.is_none() {
-            return Err(DomainError::NoActiveActivity);
-        }
-
-        self.active_activity = None;
         Ok(())
     }
 
@@ -163,5 +182,15 @@ impl ActivityState {
             .iter()
             .position(|a| a.id() == activity_id)
             .ok_or(DomainError::ActivityNotFound)
+    }
+
+    fn save_completed(
+        &mut self,
+        ctx: &AuditContext,
+        activity: Activity,
+    ) -> Result<(), DomainError> {
+        self.ensure_no_overlap(ctx, &activity)?;
+        self.completed_activities.push(activity);
+        Ok(())
     }
 }
