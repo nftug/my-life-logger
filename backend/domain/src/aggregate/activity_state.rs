@@ -21,6 +21,13 @@ impl ActivityState {
             .sorted_by_key(|a| std::cmp::Reverse(a.started_at()))
             .collect()
     }
+    pub fn all_activities(&self) -> Vec<&Activity> {
+        self.completed_activities
+            .iter()
+            .chain(self.active_activity.iter())
+            .sorted_by_key(|a| std::cmp::Reverse(a.started_at()))
+            .collect()
+    }
 
     pub fn hydrate(activities_all: Vec<Activity>) -> Result<Self, DomainError> {
         let (mut active, completed): (Vec<_>, Vec<_>) =
@@ -54,13 +61,13 @@ impl ActivityState {
     }
 
     pub fn stop(&mut self, ended_at: DateTime<Utc>) -> Result<(), DomainError> {
-        let mut activity = self
+        let mut active_activity = self
             .active_activity
             .take()
             .ok_or(DomainError::NoActiveActivity)?;
 
-        activity.stop(ended_at)?;
-        self.completed_activities.push(activity);
+        active_activity.stop(ended_at)?;
+        self.completed_activities.push(active_activity);
         Ok(())
     }
 
