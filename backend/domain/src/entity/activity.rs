@@ -1,5 +1,3 @@
-use chrono::{DateTime, Utc};
-
 use crate::{
     audit::audit_context::AuditContext,
     define_id,
@@ -28,11 +26,8 @@ impl Activity {
     pub fn description(&self) -> Option<&str> {
         self.description.as_deref()
     }
-    pub fn started_at(&self) -> DateTime<Utc> {
-        self.time_range.started_at()
-    }
-    pub fn ended_at(&self) -> Option<DateTime<Utc>> {
-        self.time_range.ended_at()
+    pub fn time_range(&self) -> &TimeRange {
+        &self.time_range
     }
 
     pub fn hydrate(
@@ -67,7 +62,7 @@ impl Activity {
             return Err(DomainError::AlreadyStopped);
         }
 
-        self.time_range = TimeRange::try_new(self.time_range.started_at(), Some(ctx.now))?;
+        self.time_range = TimeRange::try_new(self.time_range.started_at(), Some(ctx.now()))?;
         Ok(())
     }
 
@@ -91,13 +86,13 @@ impl Activity {
     }
 
     pub fn duration_seconds(&self, ctx: &AuditContext) -> i64 {
-        let end_time = self.time_range.ended_at().unwrap_or(ctx.now);
+        let end_time = self.time_range.ended_at().unwrap_or(ctx.now());
         (end_time - self.time_range.started_at()).num_seconds()
     }
 
     pub fn overlaps_with(&self, ctx: &AuditContext, other: &Activity) -> bool {
-        let self_ended_at = self.time_range.ended_at().unwrap_or(ctx.now);
-        let other_ended_at = other.time_range.ended_at().unwrap_or(ctx.now);
+        let self_ended_at = self.time_range.ended_at().unwrap_or(ctx.now());
+        let other_ended_at = other.time_range.ended_at().unwrap_or(ctx.now());
         !(self_ended_at <= other.time_range.started_at()
             || self.time_range.started_at() >= other_ended_at)
     }

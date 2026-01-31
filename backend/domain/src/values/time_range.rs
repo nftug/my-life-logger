@@ -1,6 +1,6 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 
-use crate::shared::errors::DomainError;
+use crate::{audit::audit_context::AuditContext, shared::errors::DomainError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimeRange {
@@ -52,5 +52,15 @@ impl TimeRange {
 
     pub fn is_completed(&self) -> bool {
         self.ended_at.is_some()
+    }
+
+    pub fn is_in_date(&self, ctx: &AuditContext, date: NaiveDate) -> bool {
+        let start_date = ctx.tz().get_naive_date(self.started_at);
+        let end_date = match self.ended_at {
+            Some(ended_at) => ctx.tz().get_naive_date(ended_at),
+            None => ctx.today(),
+        };
+
+        date >= start_date && date <= end_date
     }
 }
