@@ -1,0 +1,181 @@
+use crate::{
+    audit::audit_context::AuditContext,
+    entity::{
+        activity::{Activity, ActivityId},
+        category::CategoryId,
+    },
+    shared::errors::DomainError,
+};
+use chrono::{DateTime, Utc};
+use itertools::Itertools;
+
+#[derive(Debug, Default)]
+pub struct ActivityState {
+    active_activity: Option<Activity>,
+    completed_activities: Vec<Activity>,
+}
+
+impl ActivityState {
+    pub fn active_activity(&self) -> Option<&Activity> {
+        self.active_activity.as_ref()
+    }
+    pub fn completed_activities(&self) -> Vec<&Activity> {
+        self.completed_activities
+            .iter()
+            .sorted_by_key(|a| std::cmp::Reverse(a.started_at()))
+            .collect()
+    }
+    pub fn all_activities(&self) -> Vec<&Activity> {
+        self.completed_activities
+            .iter()
+            .chain(self.active_activity.iter())
+            .sorted_by_key(|a| std::cmp::Reverse(a.started_at()))
+            .collect()
+    }
+
+    pub fn hydrate(activities_all: Vec<Activity>) -> Result<Self, DomainError> {
+        let (mut active, completed): (Vec<_>, Vec<_>) =
+            activities_all.into_iter().partition(|a| a.is_active());
+
+        if active.len() > 1 {
+            return Err(DomainError::HydrationError(
+                "Multiple active activities found during hydration".to_string(),
+            ));
+        }
+
+        Ok(Self {
+            active_activity: active.pop(),
+            completed_activities: completed,
+        })
+    }
+
+    pub fn start(
+        &mut self,
+        ctx: &AuditContext,
+        category_id: CategoryId,
+        description: Option<String>,
+    ) -> Result<(), DomainError> {
+        let new_activity = Activity::new(ctx, category_id, description);
+
+        if self.active_activity.is_some() {
+            return Err(DomainError::AlreadyActive);
+        }
+        if self.overlaps_with_existing_activities(ctx, &new_activity) {
+            return Err(DomainError::ActivityOverlap);
+        }
+
+        self.active_activity = Some(new_activity);
+        Ok(())
+    }
+
+    pub fn stop(&mut self, ctx: &AuditContext) -> Result<(), DomainError> {
+        let mut active_activity = self
+            .active_activity
+            .take()
+            .ok_or(DomainError::NoActiveActivity)?;
+
+        active_activity.stop(ctx)?;
+        self.completed_activities.push(active_activity);
+        Ok(())
+    }
+
+    pub fn edit_active_activity(
+        &mut self,
+        ctx: &AuditContext,
+        category_id: CategoryId,
+        description: Option<String>,
+        started_at: DateTime<Utc>,
+    ) -> Result<(), DomainError> {
+        let mut active_activity = self
+            .active_activity
+            .as_ref()
+            .cloned()
+            .ok_or(DomainError::NoActiveActivity)?;
+
+        active_activity.edit(category_id, description, started_at, None)?;
+
+        if self.overlaps_with_existing_activities(ctx, &active_activity) {
+            return Err(DomainError::ActivityOverlap);
+        }
+
+        self.active_activity = Some(active_activity);
+
+        Ok(())
+    }
+
+    pub fn edit_completed_activity(
+        &mut self,
+        ctx: &AuditContext,
+        activity_id: ActivityId,
+        category_id: CategoryId,
+        description: Option<String>,
+        started_at: DateTime<Utc>,
+        ended_at: DateTime<Utc>,
+    ) -> Result<(), DomainError> {
+        let mut completed_activity = self
+            .completed_activities
+            .iter()
+            .find(|a| a.id() == activity_id)
+            .cloned()
+            .ok_or(DomainError::ActivityNotFound)?;
+
+        completed_activity.edit(category_id, description, started_at, Some(ended_at))?;
+
+        if self.overlaps_with_existing_activities(ctx, &completed_activity) {
+            return Err(DomainError::ActivityOverlap);
+        }
+
+        let index = self
+            .find_completed_activity_index(completed_activity.id())
+            .ok_or(DomainError::ActivityNotFound)?;
+        self.completed_activities[index] = completed_activity;
+
+        Ok(())
+    }
+
+    pub fn cancel_active_activity(&mut self) -> Result<(), DomainError> {
+        if self.active_activity.is_none() {
+            return Err(DomainError::NoActiveActivity);
+        }
+
+        self.active_activity = None;
+        Ok(())
+    }
+
+    pub fn delete_completed_activity(
+        &mut self,
+        activity_id: ActivityId,
+    ) -> Result<(), DomainError> {
+        let index = self
+            .find_completed_activity_index(activity_id)
+            .ok_or(DomainError::ActivityNotFound)?;
+
+        self.completed_activities.remove(index);
+        Ok(())
+    }
+
+    fn overlaps_with_existing_activities(&self, ctx: &AuditContext, activity: &Activity) -> bool {
+        if let Some(ref active) = self.active_activity
+            && activity.id() != active.id()
+            && activity.overlaps_with(ctx, active)
+        {
+            return true;
+        }
+
+        if self
+            .completed_activities
+            .iter()
+            .any(|a| activity.id() != a.id() && activity.overlaps_with(ctx, a))
+        {
+            return true;
+        }
+
+        false
+    }
+
+    fn find_completed_activity_index(&self, activity_id: ActivityId) -> Option<usize> {
+        self.completed_activities
+            .iter()
+            .position(|a| a.id() == activity_id)
+    }
+}
