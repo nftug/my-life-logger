@@ -4,8 +4,8 @@ use derive_new::new;
 use domain::{
     audit::{AppTimeZone, AuditContext, Clock},
     entity::ActivityId,
-    interface::ActivityStateRepository,
-    shared::EntityIdTrait,
+    interface::{ActivityStateRepository, CategoryRepository},
+    shared::{EntityIdTrait, errors::DomainError},
 };
 
 use crate::{
@@ -16,6 +16,7 @@ use crate::{
 #[derive(new)]
 pub struct SaveCompletedActivityService {
     repository: Arc<dyn ActivityStateRepository>,
+    category_repository: Arc<dyn CategoryRepository>,
     clock: Arc<dyn Clock>,
 }
 
@@ -26,6 +27,14 @@ impl SaveCompletedActivityService {
         request: &SaveCompletedActivityRequestDto,
     ) -> Result<(), ApplicationError> {
         let ctx = AuditContext::new(self.clock.as_ref(), AppTimeZone::Local);
+
+        if !self
+            .category_repository
+            .exists(request.category_id.into())
+            .await?
+        {
+            return Err(DomainError::CategoryNotFound.into());
+        }
 
         let mut activity_state = self
             .repository

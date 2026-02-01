@@ -14,6 +14,8 @@ pub enum DomainError {
     ActivityOverlap,
     #[error("Activity not found")]
     ActivityNotFound,
+    #[error("Category not found")]
+    CategoryNotFound,
     #[error("{0}")]
     HydrationError(String),
     #[error("{0}")]

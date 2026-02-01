@@ -14,9 +14,7 @@ pub enum ApplicationError {
 impl From<DomainError> for ApplicationError {
     fn from(err: DomainError) -> Self {
         match err {
-            DomainError::ActivityNotFound | DomainError::NoActiveActivity => {
-                ApplicationError::NotFound
-            }
+            DomainError::ActivityNotFound => ApplicationError::NotFound,
             DomainError::HydrationError(msg) => ApplicationError::InternalError(msg),
             other => ApplicationError::DomainError(other),
         }
