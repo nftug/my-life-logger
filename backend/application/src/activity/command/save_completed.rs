@@ -4,9 +4,8 @@ use derive_new::new;
 use domain::{
     aggregate::ActivityState,
     audit::{AuditContext, Clock},
-    entity::ActivityId,
     interface::{ActivityStateRepository, CategoryRepository},
-    shared::{EntityIdTrait, errors::DomainError},
+    shared::errors::DomainError,
 };
 
 use crate::{
@@ -45,7 +44,7 @@ impl SaveCompletedActivityService {
 
         activity_state.upsert_completed(
             &ctx,
-            identity.activity_id.unwrap_or_else(ActivityId::new_v4),
+            identity.activity_id,
             request.category_id.into(),
             request.description,
             request.started_at,

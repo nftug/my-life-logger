@@ -111,7 +111,7 @@ impl ActivityState {
     pub fn upsert_completed(
         &mut self,
         ctx: &AuditContext,
-        activity_id: ActivityId,
+        activity_id: Option<ActivityId>,
         category_id: CategoryId,
         description: Option<String>,
         started_at: DateTime<Utc>,
@@ -119,11 +119,17 @@ impl ActivityState {
     ) -> Result<(), DomainError> {
         let time_range = TimeRange::try_new_completed(started_at, ended_at)?;
 
-        let existing_opt = self.completed.iter_mut().find(|a| a.id() == activity_id);
-        let activity = match existing_opt {
-            Some(existing) => {
+        let activity = match activity_id {
+            Some(id) => {
+                let mut existing = self
+                    .completed
+                    .iter()
+                    .find(|a| a.id() == id)
+                    .cloned()
+                    .ok_or(DomainError::ActivityNotFound)?;
+
                 existing.edit(ctx, category_id, description, time_range)?;
-                existing.clone()
+                existing
             }
             None => Activity::new(ctx, category_id, description, time_range),
         };
