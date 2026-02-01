@@ -8,13 +8,17 @@ use domain::{
     shared::errors::DomainError,
 };
 
-use crate::{activity::StartActivityRequestDto, shared::ApplicationError};
+use crate::{
+    activity::{ActivityStatePublisher, StartActivityRequestDto},
+    shared::ApplicationError,
+};
 
 #[derive(new)]
 pub struct StartActivityService {
     repository: Arc<dyn ActivityStateRepository>,
     category_repository: Arc<dyn CategoryRepository>,
     clock: Arc<dyn Clock>,
+    activity_state_publisher: Arc<ActivityStatePublisher>,
 }
 
 impl StartActivityService {
@@ -38,6 +42,10 @@ impl StartActivityService {
         activity_state.start(&ctx, request.category_id.into(), request.description)?;
 
         self.repository.save(&activity_state).await?;
+
+        self.activity_state_publisher
+            .update_state(&activity_state)
+            .await;
 
         Ok(())
     }

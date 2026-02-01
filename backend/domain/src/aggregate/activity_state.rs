@@ -7,7 +7,7 @@ use crate::{
 use chrono::{DateTime, NaiveDate, Utc};
 use itertools::Itertools;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Clone)]
 pub struct ActivityState {
     date: NaiveDate,
     active: Option<Activity>,
@@ -61,7 +61,8 @@ impl ActivityState {
     pub fn new(date: NaiveDate) -> Self {
         Self {
             date,
-            ..Default::default()
+            active: None,
+            completed: Vec::new(),
         }
     }
 
@@ -78,8 +79,7 @@ impl ActivityState {
         let mut updated = self.active.take().ok_or(DomainError::NoActiveActivity)?;
 
         updated.stop(ctx)?;
-        self.place_activity(ctx, updated)?;
-        Ok(())
+        self.place_activity(ctx, updated)
     }
 
     pub fn upsert_active(
@@ -100,8 +100,7 @@ impl ActivityState {
             None => Activity::new(ctx, category_id, description, time_range),
         };
 
-        self.place_activity(ctx, activity)?;
-        Ok(())
+        self.place_activity(ctx, activity)
     }
 
     pub fn cancel_active(&mut self) -> Result<(), DomainError> {
@@ -133,8 +132,7 @@ impl ActivityState {
             None => Activity::new(ctx, category_id, description, time_range),
         };
 
-        self.place_activity(ctx, activity)?;
-        Ok(())
+        self.place_activity(ctx, activity)
     }
 
     pub fn delete_completed(&mut self, activity_id: ActivityId) -> Result<(), DomainError> {

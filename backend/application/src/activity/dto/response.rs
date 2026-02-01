@@ -16,7 +16,7 @@ pub struct ActivityResponseDto {
 }
 
 impl ActivityResponseDto {
-    pub fn from_domain(ctx: &AuditContext, activity: Activity) -> ActivityResponseDto {
+    pub fn from_domain(ctx: &AuditContext, activity: &Activity) -> ActivityResponseDto {
         ActivityResponseDto {
             id: activity.id().into(),
             date: activity.date(),
@@ -40,17 +40,17 @@ pub struct ActivityStateResponseDto {
 impl ActivityStateResponseDto {
     pub fn from_domain(
         ctx: &AuditContext,
-        activity_state: ActivityState,
+        activity_state: &ActivityState,
     ) -> ActivityStateResponseDto {
         ActivityStateResponseDto {
             date: activity_state.date(),
             active_activity: activity_state
                 .active()
-                .map(|a| ActivityResponseDto::from_domain(ctx, a.clone())),
+                .map(|a| ActivityResponseDto::from_domain(ctx, a)),
             completed_activities: activity_state
                 .completed()
                 .into_iter()
-                .map(|a| ActivityResponseDto::from_domain(ctx, a.clone()))
+                .map(|a| ActivityResponseDto::from_domain(ctx, a))
                 .collect(),
         }
     }
@@ -60,6 +60,24 @@ impl ActivityStateResponseDto {
             date,
             active_activity: None,
             completed_activities: vec![],
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ActivityStateEventDto {
+    pub date: NaiveDate,
+    pub active_duration_seconds: Option<i64>,
+}
+
+impl ActivityStateEventDto {
+    pub fn from_domain(ctx: &AuditContext, activity_state: &ActivityState) -> Self {
+        let active_duration_seconds = activity_state.active().map(|a| a.duration_seconds(ctx));
+
+        ActivityStateEventDto {
+            date: activity_state.date(),
+            active_duration_seconds,
         }
     }
 }

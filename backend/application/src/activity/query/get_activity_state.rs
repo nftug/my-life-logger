@@ -28,7 +28,7 @@ impl GetActivityStateService {
             .repository
             .load(ctx.tz(), identity.date)
             .await?
-            .map(|a| ActivityStateResponseDto::from_domain(&ctx, a))
+            .map(|a| ActivityStateResponseDto::from_domain(&ctx, &a))
             .unwrap_or(ActivityStateResponseDto::default(identity.date));
 
         Ok(response)
