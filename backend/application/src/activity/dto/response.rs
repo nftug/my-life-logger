@@ -49,7 +49,6 @@ impl ActivityStateResponseDto {
                 .map(|a| ActivityResponseDto::from_domain(ctx, a)),
             completed_activities: activity_state
                 .completed()
-                .into_iter()
                 .map(|a| ActivityResponseDto::from_domain(ctx, a))
                 .collect(),
         }

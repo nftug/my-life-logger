@@ -18,18 +18,14 @@ impl ActivityState {
     pub fn active(&self) -> Option<&Activity> {
         self.active.as_ref()
     }
-    pub fn completed(&self) -> Vec<&Activity> {
-        self.completed
-            .iter()
-            .sorted_by_key(|a| std::cmp::Reverse(a.started_at()))
-            .collect()
+    pub fn completed(&self) -> std::vec::IntoIter<&Activity> {
+        self.completed.iter().sorted_by_key(|a| a.started_at())
     }
-    pub fn all(&self) -> Vec<&Activity> {
+    pub fn all(&self) -> std::vec::IntoIter<&Activity> {
         self.completed
             .iter()
             .chain(self.active.iter())
-            .sorted_by_key(|a| std::cmp::Reverse(a.started_at()))
-            .collect()
+            .sorted_by_key(|a| a.started_at())
     }
     pub fn date(&self) -> NaiveDate {
         self.date
