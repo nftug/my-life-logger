@@ -2,7 +2,8 @@ use std::sync::Arc;
 
 use derive_new::new;
 use domain::{
-    audit::{AppTimeZone, AuditContext, Clock},
+    aggregate::ActivityState,
+    audit::{AuditContext, Clock},
     entity::ActivityId,
     interface::{ActivityStateRepository, CategoryRepository},
     shared::{EntityIdTrait, errors::DomainError},
@@ -23,10 +24,10 @@ pub struct SaveCompletedActivityService {
 impl SaveCompletedActivityService {
     pub async fn handle(
         &self,
-        identity: &SaveCompletedActivityIdentityDto,
-        request: &SaveCompletedActivityRequestDto,
+        identity: SaveCompletedActivityIdentityDto,
+        request: SaveCompletedActivityRequestDto,
     ) -> Result<(), ApplicationError> {
-        let ctx = AuditContext::new(self.clock.as_ref(), AppTimeZone::Local);
+        let ctx = AuditContext::new(self.clock.as_ref());
 
         if !self
             .category_repository
@@ -40,13 +41,13 @@ impl SaveCompletedActivityService {
             .repository
             .load(ctx.tz(), ctx.today())
             .await?
-            .ok_or(ApplicationError::NotFound)?;
+            .unwrap_or(ActivityState::new(ctx.today()));
 
         activity_state.upsert_completed(
             &ctx,
             identity.activity_id.unwrap_or_else(ActivityId::new_v4),
             request.category_id.into(),
-            request.description.clone(),
+            request.description,
             request.started_at,
             request.ended_at,
         )?;

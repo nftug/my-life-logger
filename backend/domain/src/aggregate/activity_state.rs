@@ -58,6 +58,13 @@ impl ActivityState {
         })
     }
 
+    pub fn new(date: NaiveDate) -> Self {
+        Self {
+            date,
+            ..Default::default()
+        }
+    }
+
     pub fn start(
         &mut self,
         ctx: &AuditContext,
@@ -146,8 +153,16 @@ impl ActivityState {
         ctx: &AuditContext,
         new_activity: Activity,
     ) -> Result<(), DomainError> {
-        self.ensure_single_date(&new_activity)?;
-        self.ensure_no_overlap(ctx, &new_activity)?;
+        // Ensure single date
+        if new_activity.date() != self.date {
+            return Err(DomainError::ActivityNotInSpecifiedDate);
+        }
+
+        // Ensure no overlap
+        let mut all = self.completed.iter().chain(self.active.iter());
+        if all.any(|a| a.overlaps_with(ctx, &new_activity)) {
+            return Err(DomainError::ActivityOverlap);
+        }
 
         if new_activity.is_active() {
             if let Some(ref current_active) = self.active
@@ -168,29 +183,5 @@ impl ActivityState {
         }
 
         Ok(())
-    }
-
-    fn ensure_no_overlap(
-        &self,
-        ctx: &AuditContext,
-        new_activity: &Activity,
-    ) -> Result<(), DomainError> {
-        match self
-            .all()
-            .iter()
-            .any(|a| a.overlaps_with(ctx, new_activity))
-        {
-            true => Err(DomainError::ActivityOverlap),
-            false => Ok(()),
-        }
-    }
-
-    fn ensure_single_date(&self, new_activity: &Activity) -> Result<(), DomainError> {
-        match new_activity.date() == self.date {
-            true => Ok(()),
-            false => Err(DomainError::HydrationError(
-                "Activity does not belong to the specified date".to_string(),
-            )),
-        }
     }
 }

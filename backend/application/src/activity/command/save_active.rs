@@ -2,7 +2,8 @@ use std::sync::Arc;
 
 use derive_new::new;
 use domain::{
-    audit::{AppTimeZone, AuditContext, Clock},
+    aggregate::ActivityState,
+    audit::{AuditContext, Clock},
     interface::{ActivityStateRepository, CategoryRepository},
     shared::errors::DomainError,
 };
@@ -19,9 +20,9 @@ pub struct SaveActiveActivityService {
 impl SaveActiveActivityService {
     pub async fn handle(
         &self,
-        request: &SaveActiveActivityRequestDto,
+        request: SaveActiveActivityRequestDto,
     ) -> Result<(), ApplicationError> {
-        let ctx = AuditContext::new(self.clock.as_ref(), AppTimeZone::Local);
+        let ctx = AuditContext::new(self.clock.as_ref());
 
         if !self
             .category_repository
@@ -35,12 +36,12 @@ impl SaveActiveActivityService {
             .repository
             .load(ctx.tz(), ctx.today())
             .await?
-            .ok_or(ApplicationError::NotFound)?;
+            .unwrap_or(ActivityState::new(ctx.today()));
 
         activity_state.upsert_active(
             &ctx,
             request.category_id.into(),
-            request.description.clone(),
+            request.description,
             request.started_at,
         )?;
 

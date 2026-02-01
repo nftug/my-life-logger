@@ -10,6 +10,8 @@ pub enum DomainError {
     AlreadyStopped,
     #[error("Activity time range is invalid")]
     InvalidTimeRange,
+    #[error("Activity does not belong to the specified date")]
+    ActivityNotInSpecifiedDate,
     #[error("Activity overlaps with an existing activity")]
     ActivityOverlap,
     #[error("Activity not found")]

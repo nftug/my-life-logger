@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use derive_new::new;
 use domain::{
-    audit::{AppTimeZone, AuditContext, Clock},
+    audit::{AuditContext, Clock},
     interface::ActivityStateRepository,
 };
 
@@ -16,7 +16,7 @@ pub struct StopActivityService {
 
 impl StopActivityService {
     pub async fn handle(&self) -> Result<(), ApplicationError> {
-        let ctx = AuditContext::new(self.clock.as_ref(), AppTimeZone::Local);
+        let ctx = AuditContext::new(self.clock.as_ref());
 
         let mut activity_state = self
             .repository

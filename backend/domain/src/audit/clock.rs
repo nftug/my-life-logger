@@ -1,8 +1,14 @@
 use chrono::{DateTime, Utc};
 
+use crate::audit::AppTimeZone;
+
 pub trait Clock: Send + Sync {
     fn now(&self) -> DateTime<Utc> {
         Utc::now()
+    }
+
+    fn tz(&self) -> AppTimeZone {
+        AppTimeZone::Local
     }
 }
 

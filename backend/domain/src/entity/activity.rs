@@ -100,7 +100,10 @@ impl Activity {
             return Err(DomainError::AlreadyStopped);
         }
 
-        self.time_range = TimeRange::try_new_completed(self.time_range.started_at(), ctx.now())?;
+        let started_at = self.time_range.started_at();
+        let ended_at = self.ended_at_filler(ctx);
+        self.time_range = TimeRange::try_new_completed(started_at, ended_at)?;
+
         Ok(())
     }
 

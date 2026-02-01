@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use derive_new::new;
 use domain::{
-    audit::{AppTimeZone, AuditContext, Clock},
+    audit::{AuditContext, Clock},
     interface::ActivityStateRepository,
 };
 
@@ -22,7 +22,7 @@ impl GetActivityStateService {
         &self,
         identity: &GetActivityStateIdentityDto,
     ) -> Result<ActivityStateResponseDto, ApplicationError> {
-        let ctx = AuditContext::new(self.clock.as_ref(), AppTimeZone::Local);
+        let ctx = AuditContext::new(self.clock.as_ref());
 
         let response = self
             .repository
