@@ -34,16 +34,9 @@ impl ActivityState {
     pub fn date(&self) -> NaiveDate {
         self.date
     }
-    pub fn duration_seconds_of(&self, ctx: &AuditContext, activity: &Activity) -> i64 {
-        activity.duration_seconds(self.ended_at_filler(ctx))
-    }
 
-    pub fn hydrate(
-        ctx: &AuditContext,
-        date: NaiveDate,
-        activities_all: Vec<Activity>,
-    ) -> Result<Self, DomainError> {
-        if activities_all.iter().any(|a| !a.is_in_date(ctx, date)) {
+    pub fn hydrate(date: NaiveDate, activities_all: Vec<Activity>) -> Result<Self, DomainError> {
+        if activities_all.iter().any(|a| a.date() != date) {
             return Err(DomainError::HydrationError(
                 "Activity does not belong to the specified date".to_string(),
             ));
@@ -94,10 +87,10 @@ impl ActivityState {
         let activity = match &self.active {
             Some(existing) => {
                 let mut updated = existing.clone();
-                updated.edit(category_id, description, time_range);
+                updated.edit(ctx, category_id, description, time_range)?;
                 updated
             }
-            None => Activity::new(category_id, description, time_range),
+            None => Activity::new(ctx, category_id, description, time_range),
         };
 
         self.place_activity(ctx, activity)?;
@@ -127,10 +120,10 @@ impl ActivityState {
         let existing_opt = self.completed.iter_mut().find(|a| a.id() == activity_id);
         let activity = match existing_opt {
             Some(existing) => {
-                existing.edit(category_id, description, time_range);
+                existing.edit(ctx, category_id, description, time_range)?;
                 existing.clone()
             }
-            None => Activity::new(category_id, description, time_range),
+            None => Activity::new(ctx, category_id, description, time_range),
         };
 
         self.place_activity(ctx, activity)?;
@@ -153,7 +146,7 @@ impl ActivityState {
         ctx: &AuditContext,
         new_activity: Activity,
     ) -> Result<(), DomainError> {
-        self.ensure_single_date(ctx, &new_activity)?;
+        self.ensure_single_date(&new_activity)?;
         self.ensure_no_overlap(ctx, &new_activity)?;
 
         if new_activity.is_active() {
@@ -185,31 +178,19 @@ impl ActivityState {
         match self
             .all()
             .iter()
-            .any(|a| a.overlaps_with(new_activity, self.ended_at_filler(ctx)))
+            .any(|a| a.overlaps_with(ctx, new_activity))
         {
             true => Err(DomainError::ActivityOverlap),
             false => Ok(()),
         }
     }
 
-    fn ensure_single_date(
-        &self,
-        ctx: &AuditContext,
-        new_activity: &Activity,
-    ) -> Result<(), DomainError> {
-        match new_activity.is_in_date(ctx, self.date) {
+    fn ensure_single_date(&self, new_activity: &Activity) -> Result<(), DomainError> {
+        match new_activity.date() == self.date {
             true => Ok(()),
             false => Err(DomainError::HydrationError(
                 "Activity does not belong to the specified date".to_string(),
             )),
-        }
-    }
-
-    fn ended_at_filler(&self, ctx: &AuditContext) -> DateTime<Utc> {
-        if self.date == ctx.today() {
-            ctx.now()
-        } else {
-            ctx.tz().start_of_next_date(self.date)
         }
     }
 }

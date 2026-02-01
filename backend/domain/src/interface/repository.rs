@@ -1,7 +1,9 @@
 use async_trait::async_trait;
+use chrono::NaiveDate;
 
 use crate::{
     aggregate::ActivityState,
+    audit::AppTimeZone,
     entity::{Category, CategoryId},
     shared::errors::PersistenceError,
 };
@@ -9,7 +11,12 @@ use crate::{
 #[async_trait]
 pub trait ActivityStateRepository: Send + Sync {
     async fn save(&self, activity_state: &ActivityState) -> Result<(), PersistenceError>;
-    async fn load(&self) -> Result<ActivityState, PersistenceError>;
+
+    async fn load(
+        &self,
+        tz: AppTimeZone,
+        date: NaiveDate,
+    ) -> Result<Option<ActivityState>, PersistenceError>;
 }
 
 #[async_trait]

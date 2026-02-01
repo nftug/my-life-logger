@@ -1,6 +1,6 @@
 use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, TimeZone, Utc};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum AppTimeZone {
     Utc,
     Local,
@@ -16,11 +16,11 @@ impl AppTimeZone {
         }
     }
 
-    pub fn start_of_date(&self, date: NaiveDate) -> DateTime<Utc> {
+    pub fn start_of_day(&self, date: NaiveDate) -> DateTime<Utc> {
         self.utc_datetime(date.and_hms_opt(0, 0, 0).unwrap())
     }
-    pub fn start_of_next_date(&self, date: NaiveDate) -> DateTime<Utc> {
-        self.start_of_date(date.succ_opt().unwrap())
+    pub fn start_of_next_day(&self, date: NaiveDate) -> DateTime<Utc> {
+        self.start_of_day(date.succ_opt().unwrap())
     }
     pub fn utc_datetime(&self, naive_datetime: NaiveDateTime) -> DateTime<Utc> {
         match self {

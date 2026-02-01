@@ -9,7 +9,7 @@ pub struct AuditContext {
 }
 
 impl AuditContext {
-    pub fn new(clock: &impl Clock, tz: AppTimeZone) -> Self {
+    pub fn new(clock: &dyn Clock, tz: AppTimeZone) -> Self {
         Self {
             now: clock.now(),
             tz,
@@ -24,7 +24,7 @@ impl AuditContext {
         self.tz.naive_date(self.now)
     }
 
-    pub fn tz(&self) -> &AppTimeZone {
-        &self.tz
+    pub fn tz(&self) -> AppTimeZone {
+        self.tz
     }
 }

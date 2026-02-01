@@ -22,7 +22,7 @@ impl Category {
 
     pub fn new(name: String) -> Self {
         Self {
-            id: CategoryId::new(),
+            id: CategoryId::new_v4(),
             name,
         }
     }

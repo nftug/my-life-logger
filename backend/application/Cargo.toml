@@ -9,3 +9,13 @@ description.workspace = true
 
 [dependencies]
 domain.workspace = true
+
+uuid.workspace = true
+serde.workspace = true
+chrono.workspace = true
+thiserror.workspace = true
+itertools.workspace = true
+async-trait.workspace = true
+derive-new.workspace = true
+
+garde = { version = "0.22.1", features = ["derive"] }

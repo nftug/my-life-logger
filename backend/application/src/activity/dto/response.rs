@@ -1,0 +1,65 @@
+use chrono::{DateTime, NaiveDate, Utc};
+use domain::{aggregate::ActivityState, audit::AuditContext, entity::Activity};
+use serde::Serialize;
+use uuid::Uuid;
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ActivityResponseDto {
+    pub id: Uuid,
+    pub date: NaiveDate,
+    pub category_id: Uuid,
+    pub description: Option<String>,
+    pub started_at: DateTime<Utc>,
+    pub ended_at: Option<DateTime<Utc>>,
+    pub duration_seconds: i64,
+}
+
+impl ActivityResponseDto {
+    pub fn from_domain(ctx: &AuditContext, activity: Activity) -> ActivityResponseDto {
+        ActivityResponseDto {
+            id: activity.id().into(),
+            date: activity.date(),
+            category_id: activity.category_id().into(),
+            description: activity.description().map(|s| s.to_string()),
+            started_at: activity.started_at(),
+            ended_at: activity.ended_at(),
+            duration_seconds: activity.duration_seconds(ctx),
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ActivityStateResponseDto {
+    pub date: NaiveDate,
+    pub active_activity: Option<ActivityResponseDto>,
+    pub completed_activities: Vec<ActivityResponseDto>,
+}
+
+impl ActivityStateResponseDto {
+    pub fn from_domain(
+        ctx: &AuditContext,
+        activity_state: ActivityState,
+    ) -> ActivityStateResponseDto {
+        ActivityStateResponseDto {
+            date: activity_state.date(),
+            active_activity: activity_state
+                .active()
+                .map(|a| ActivityResponseDto::from_domain(ctx, a.clone())),
+            completed_activities: activity_state
+                .completed()
+                .into_iter()
+                .map(|a| ActivityResponseDto::from_domain(ctx, a.clone()))
+                .collect(),
+        }
+    }
+
+    pub fn default(date: NaiveDate) -> Self {
+        ActivityStateResponseDto {
+            date,
+            active_activity: None,
+            completed_activities: vec![],
+        }
+    }
+}

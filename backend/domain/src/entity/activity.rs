@@ -16,6 +16,7 @@ pub struct Activity {
     category_id: CategoryId,
     description: Option<String>,
     time_range: TimeRange,
+    date: NaiveDate,
 }
 
 impl Activity {
@@ -34,17 +35,8 @@ impl Activity {
     pub fn is_completed(&self) -> bool {
         self.time_range.is_completed()
     }
-    pub fn duration_seconds(&self, ended_at_filler: DateTime<Utc>) -> i64 {
-        self.time_range.duration_seconds(ended_at_filler)
-    }
-    pub fn overlaps_with(&self, other: &Activity, ended_at_filler: DateTime<Utc>) -> bool {
-        self.id != other.id
-            && self
-                .time_range
-                .overlaps_with(&other.time_range, ended_at_filler)
-    }
-    pub fn is_in_date(&self, ctx: &AuditContext, date: NaiveDate) -> bool {
-        self.time_range.is_in_date(ctx, date)
+    pub fn date(&self) -> NaiveDate {
+        self.date
     }
     pub fn started_at(&self) -> DateTime<Utc> {
         self.time_range.started_at()
@@ -53,31 +45,53 @@ impl Activity {
         self.time_range.ended_at()
     }
 
+    pub fn duration_seconds(&self, ctx: &AuditContext) -> i64 {
+        self.time_range.duration_seconds(self.ended_at_filler(ctx))
+    }
+    pub fn overlaps_with(&self, ctx: &AuditContext, other: &Activity) -> bool {
+        self.id != other.id
+            && self
+                .time_range
+                .overlaps_with(&other.time_range, self.ended_at_filler(ctx))
+    }
+
     pub fn hydrate(
+        ctx: &AuditContext,
         id: ActivityId,
         category_id: CategoryId,
         description: Option<String>,
-        started_at: DateTime<Utc>,
-        ended_at: Option<DateTime<Utc>>,
-    ) -> Self {
-        Self {
+        time_range: TimeRange,
+        date: NaiveDate,
+    ) -> Result<Self, DomainError> {
+        if !time_range.is_in_date(ctx, date) {
+            return Err(DomainError::HydrationError(
+                "TimeRange does not belong to the specified date".to_string(),
+            ));
+        }
+
+        Ok(Self {
             id,
             category_id,
             description,
-            time_range: TimeRange::hydrate(started_at, ended_at),
-        }
+            time_range,
+            date,
+        })
     }
 
     pub fn new(
+        ctx: &AuditContext,
         category_id: CategoryId,
         description: Option<String>,
         time_range: TimeRange,
     ) -> Self {
+        let date = ctx.tz().naive_date(time_range.started_at());
+
         Self {
-            id: ActivityId::new(),
+            id: ActivityId::new_v4(),
             category_id,
             description,
             time_range,
+            date,
         }
     }
 
@@ -92,12 +106,27 @@ impl Activity {
 
     pub fn edit(
         &mut self,
+        ctx: &AuditContext,
         new_category_id: CategoryId,
         new_description: Option<String>,
         new_time_range: TimeRange,
-    ) {
+    ) -> Result<(), DomainError> {
+        if !new_time_range.is_in_date(ctx, self.date) {
+            return Err(DomainError::InvalidTimeRange);
+        }
+
         self.time_range = new_time_range;
         self.category_id = new_category_id;
         self.description = new_description;
+
+        Ok(())
+    }
+
+    fn ended_at_filler(&self, ctx: &AuditContext) -> DateTime<Utc> {
+        if self.date == ctx.today() {
+            ctx.now()
+        } else {
+            ctx.tz().start_of_next_day(self.date)
+        }
     }
 }

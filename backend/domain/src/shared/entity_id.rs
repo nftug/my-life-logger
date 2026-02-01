@@ -48,7 +48,7 @@ pub mod id_type {
     pub trait EntityIdTrait:
         Sized + Clone + std::fmt::Debug + PartialEq + Eq + Copy + From<Uuid> + Into<Uuid>
     {
-        fn new() -> Self {
+        fn new_v4() -> Self {
             Self::from(Uuid::new_v4())
         }
     }
