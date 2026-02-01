@@ -28,11 +28,7 @@ impl SaveActiveActivityService {
     ) -> Result<(), ApplicationError> {
         let ctx = AuditContext::new(self.clock.as_ref());
 
-        if !self
-            .category_repository
-            .exists(request.category_id.into())
-            .await?
-        {
+        if !self.category_repository.exists(request.category_id).await? {
             return Err(DomainError::CategoryNotFound.into());
         }
 
@@ -44,7 +40,7 @@ impl SaveActiveActivityService {
 
         activity_state.upsert_active(
             &ctx,
-            request.category_id.into(),
+            request.category_id,
             request.description,
             request.started_at,
         )?;

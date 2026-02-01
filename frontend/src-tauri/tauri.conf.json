@@ -37,7 +37,12 @@
       "includePrivate": false,
       "outputPath": "../src/generated",
       "projectPath": ".",
-      "typeMappings": null,
+      "typeMappings": {
+        "DateTime<Utc>": "string",
+        "NaiveDate": "string",
+        "ActivityId": "string",
+        "CategoryId": "string"
+      },
       "validationLibrary": "none",
       "verbose": false,
       "visualizeDeps": false

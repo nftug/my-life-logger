@@ -25,11 +25,7 @@ impl StartActivityService {
     pub async fn handle(&self, request: StartActivityRequestDto) -> Result<(), ApplicationError> {
         let ctx = AuditContext::new(self.clock.as_ref());
 
-        if !self
-            .category_repository
-            .exists(request.category_id.into())
-            .await?
-        {
+        if !self.category_repository.exists(request.category_id).await? {
             return Err(DomainError::CategoryNotFound.into());
         }
 
@@ -39,7 +35,7 @@ impl StartActivityService {
             .await?
             .unwrap_or(ActivityState::new(ctx.today()));
 
-        activity_state.start(&ctx, request.category_id.into(), request.description)?;
+        activity_state.start(&ctx, request.category_id, request.description)?;
 
         self.repository.save(&activity_state).await?;
 
