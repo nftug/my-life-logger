@@ -26,7 +26,7 @@ impl GetActivityStateService {
 
         let response = self
             .repository
-            .load(ctx.tz(), identity.date)
+            .load(&ctx, identity.date)
             .await?
             .map(|a| ActivityStateResponseDto::from_domain(&ctx, &a))
             .unwrap_or(ActivityStateResponseDto::default(identity.date));

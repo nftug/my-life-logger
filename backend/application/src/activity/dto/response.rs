@@ -2,16 +2,17 @@ use chrono::{DateTime, NaiveDate, Utc};
 use domain::{
     aggregate::ActivityState,
     audit::AuditContext,
-    entity::{Activity, ActivityId, CategoryId},
+    entity::{Activity, ActivityId},
 };
 use serde::Serialize;
 
+use crate::category::CategoryResponseDto;
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ActivityResponseDto {
     pub id: ActivityId,
     pub date: NaiveDate,
-    pub category_id: CategoryId,
+    pub category: CategoryResponseDto,
     pub description: Option<String>,
     pub started_at: DateTime<Utc>,
     pub ended_at: Option<DateTime<Utc>>,
@@ -23,7 +24,7 @@ impl ActivityResponseDto {
         ActivityResponseDto {
             id: activity.id(),
             date: activity.date(),
-            category_id: activity.category_id(),
+            category: activity.category().into(),
             description: activity.description().map(|s| s.to_string()),
             started_at: activity.started_at(),
             ended_at: activity.ended_at(),

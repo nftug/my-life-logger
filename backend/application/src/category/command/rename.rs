@@ -19,7 +19,11 @@ impl RenameCategoryService {
         identity: RenameCategoryIdentityDto,
         request: RenameCategoryRequestDto,
     ) -> Result<(), ApplicationError> {
-        let mut category = self.repository.find_by_id(identity.category_id).await?;
+        let mut category = self
+            .repository
+            .find_by_id(identity.category_id)
+            .await?
+            .ok_or(ApplicationError::NotFound)?;
 
         category.rename(request.name);
 

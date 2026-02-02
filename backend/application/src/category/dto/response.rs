@@ -1,4 +1,7 @@
-use domain::entity::{Category, CategoryId};
+use domain::{
+    entity::{Category, CategoryId},
+    values::CategoryReference,
+};
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -8,11 +11,20 @@ pub struct CategoryResponseDto {
     pub name: String,
 }
 
-impl CategoryResponseDto {
-    pub fn from_domain(category: &Category) -> Self {
+impl From<&Category> for CategoryResponseDto {
+    fn from(category: &Category) -> Self {
         CategoryResponseDto {
             id: category.id(),
             name: category.name().to_string(),
+        }
+    }
+}
+
+impl From<&CategoryReference> for CategoryResponseDto {
+    fn from(category_reference: &CategoryReference) -> Self {
+        CategoryResponseDto {
+            id: category_reference.category_id(),
+            name: category_reference.name().to_string(),
         }
     }
 }

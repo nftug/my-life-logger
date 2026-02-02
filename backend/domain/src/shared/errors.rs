@@ -19,8 +19,6 @@ pub enum DomainError {
     #[error("Category not found")]
     CategoryNotFound,
     #[error("{0}")]
-    HydrationError(String),
-    #[error("{0}")]
     GenericError(String),
 }
 
@@ -28,6 +26,8 @@ pub enum DomainError {
 pub enum PersistenceError {
     #[error("Database error: {0}")]
     DatabaseError(String),
+    #[error("{0}")]
+    HydrationError(String),
     #[error("Entity not found")]
     NotFound,
 }

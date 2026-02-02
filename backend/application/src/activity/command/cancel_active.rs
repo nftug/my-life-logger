@@ -21,7 +21,7 @@ impl CancelActiveActivityService {
 
         let mut activity_state = self
             .repository
-            .load(ctx.tz(), ctx.today())
+            .load(&ctx, ctx.today())
             .await?
             .ok_or(ApplicationError::NotFound)?;
 
