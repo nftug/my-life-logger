@@ -1,10 +1,11 @@
 use async_trait::async_trait;
+use derive_new::new;
 use domain::{
     entity::{Category, CategoryId},
     interface::CategoryRepository,
     shared::errors::PersistenceError,
 };
-use sea_orm::{ActiveModelTrait, EntityTrait, QueryOrder};
+use sea_orm::{EntityTrait, QueryOrder, sea_query::OnConflict};
 
 use crate::{
     category::mapper::CategoryMapper,
@@ -15,15 +16,9 @@ use crate::{
     },
 };
 
-#[derive(Clone)]
+#[derive(new)]
 pub struct CategoryRepositoryImpl {
     pool: ConnectionPool,
-}
-
-impl CategoryRepositoryImpl {
-    pub fn new(pool: ConnectionPool) -> Self {
-        Self { pool }
-    }
 }
 
 #[async_trait]
@@ -32,9 +27,8 @@ impl CategoryRepository for CategoryRepositoryImpl {
         &self,
         category_id: CategoryId,
     ) -> Result<Option<Category>, PersistenceError> {
-        let db = self.pool.inner_ref();
         let model = Categories::find_by_id(category_id.raw())
-            .one(db)
+            .one(self.pool.inner_ref())
             .await
             .map_err(log_db_error)?;
 
@@ -42,10 +36,9 @@ impl CategoryRepository for CategoryRepositoryImpl {
     }
 
     async fn find_all(&self) -> Result<Vec<Category>, PersistenceError> {
-        let db = self.pool.inner_ref();
         let models = Categories::find()
             .order_by_asc(categories::Column::Name)
-            .all(db)
+            .all(self.pool.inner_ref())
             .await
             .map_err(log_db_error)?;
 
@@ -53,27 +46,22 @@ impl CategoryRepository for CategoryRepositoryImpl {
     }
 
     async fn save(&self, category: &Category) -> Result<(), PersistenceError> {
-        let db = self.pool.inner_ref();
-        let existing = Categories::find_by_id(category.id().raw())
-            .one(db)
+        categories::Entity::insert(CategoryMapper::to_active_model(category))
+            .on_conflict(
+                OnConflict::column(categories::Column::Id)
+                    .update_columns([categories::Column::Name])
+                    .to_owned(),
+            )
+            .exec(self.pool.inner_ref())
             .await
             .map_err(log_db_error)?;
-
-        if existing.is_some() {
-            let model = CategoryMapper::to_active_model(category);
-            model.update(db).await.map_err(log_db_error)?;
-        } else {
-            let model = CategoryMapper::to_active_model(category);
-            model.insert(db).await.map_err(log_db_error)?;
-        }
 
         Ok(())
     }
 
     async fn delete(&self, category_id: CategoryId) -> Result<(), PersistenceError> {
-        let db = self.pool.inner_ref();
         let result = Categories::delete_by_id(category_id.raw())
-            .exec(db)
+            .exec(self.pool.inner_ref())
             .await
             .map_err(log_db_error)?;
 
