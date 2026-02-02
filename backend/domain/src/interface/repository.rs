@@ -23,5 +23,7 @@ pub trait ActivityStateRepository: Send + Sync {
 pub trait CategoryRepository: Send + Sync {
     async fn exists(&self, category_id: CategoryId) -> Result<bool, PersistenceError>;
     async fn find_by_id(&self, category_id: CategoryId) -> Result<Category, PersistenceError>;
+    async fn find_all(&self) -> Result<Vec<Category>, PersistenceError>;
     async fn save(&self, category: &Category) -> Result<(), PersistenceError>;
+    async fn delete(&self, category_id: CategoryId) -> Result<(), PersistenceError>;
 }
