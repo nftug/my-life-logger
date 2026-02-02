@@ -4,6 +4,7 @@ members = [
     "backend/domain",
     "backend/infrastructure",
     "backend/application",
+    "backend/migration",
 ]
 resolver = "3"
 

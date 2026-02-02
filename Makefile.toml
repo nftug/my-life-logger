@@ -1,0 +1,64 @@
+[config]
+default_to_workspace = false
+
+[env]
+DATABASE_URL = "sqlite://db.sqlite3?mode=rwc"
+
+[tasks.install-sea-orm-cli]
+install_crate = { crate_name = "sea-orm-cli", version = "2.0.0-rc.28", binary = "sea-orm-cli", test_arg = "--help" }
+
+[tasks.migrate]
+dependencies = ["install-sea-orm-cli"]
+command = "sea-orm-cli"
+args = [
+    "migrate",
+    "generate",
+    "-u",
+    "${DATABASE_URL}",
+    "-d",
+    "backend/migration",
+]
+
+[tasks.generate-entity]
+dependencies = ["install-sea-orm-cli"]
+command = "sea-orm-cli"
+args = [
+    "generate",
+    "entity",
+    "--entity-format",
+    "dense",
+    "-o",
+    "backend/infrastructure/src/database/entity",
+]
+
+[tasks.migrate-fresh]
+dependencies = ["install-sea-orm-cli"]
+command = "sea-orm-cli"
+args = ["migrate", "fresh", "-u", "${DATABASE_URL}", "-d", "backend/migration"]
+
+[tasks.sea-orm-cli]
+dependencies = ["install-sea-orm-cli"]
+command = "sea-orm-cli"
+args = ["${@}"]
+
+[tasks.before-build]
+command = "bun"
+args = ["install", "--cwd", "frontend"]
+
+[tasks.run]
+dependencies = ["before-build"]
+command = "bun"
+args = ["run", "--cwd", "./frontend", "tauri", "dev", "--", "${@}"]
+
+[tasks.build]
+dependencies = ["before-build"]
+command = "bun"
+args = ["run", "--cwd", "./frontend", "tauri", "build", "--", "${@}"]
+
+[tasks.check]
+command = "cargo"
+args = ["clippy", "--all", "--all-targets", "${@}"]
+
+[tasks.test]
+command = "cargo"
+args = ["test", "--all-features", "${@}"]

@@ -48,7 +48,7 @@ impl ActivityStatePublisher {
                     .repository
                     .load(ctx.tz(), ctx.today())
                     .await
-                    .unwrap_or(None)
+                    .unwrap_or_default()
                     .unwrap_or(ActivityState::new(ctx.today()));
                 self.current_state.write().await.replace(new_state);
             }
