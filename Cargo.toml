@@ -5,6 +5,7 @@ members = [
     "backend/infrastructure",
     "backend/application",
 ]
+resolver = "3"
 
 [workspace.package]
 edition = "2024"
@@ -15,7 +16,6 @@ authors = ["Harakazu"]
 description = "My Life Logger Application"
 
 [workspace.dependencies]
-tauri-app = { path = "src-tauri" }
 domain = { path = "backend/domain" }
 infrastructure = { path = "backend/infrastructure" }
 application = { path = "backend/application" }
@@ -23,19 +23,19 @@ application = { path = "backend/application" }
 derive-new = "0.7.0"
 serde = { version = "1.0.228", features = ["derive"] }
 uuid = { version = "1.19.0", features = ["v4", "serde"] }
-chrono = { version = "0.4.26", default-features = false, features = ["serde"] }
+chrono = { version = "0.4.26", default-features = false, features = [
+    "serde",
+    "clock",
+] }
 thiserror = "2.0.17"
 strum = { version = "0.27.2", features = ["derive"] }
 itertools = "0.14.0"
 tracing = { version = "0.1.44", features = ["log"] }
 async-trait = "0.1.89"
 
-[profile.dev.build-override]
-incremental = false
-
 [profile.release]
 lto = true
-opt-level = "z"
+opt-level = "s"
 codegen-units = 1
 panic = "abort"
 strip = "symbols"
