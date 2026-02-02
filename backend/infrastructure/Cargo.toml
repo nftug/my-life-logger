@@ -10,3 +10,21 @@ description.workspace = true
 [dependencies]
 domain.workspace = true
 application.workspace = true
+
+uuid.workspace = true
+serde.workspace = true
+chrono.workspace = true
+thiserror.workspace = true
+itertools.workspace = true
+async-trait.workspace = true
+derive-new.workspace = true
+tracing.workspace = true
+
+sea-orm = { version = "2.0.0-rc.28", features = [
+    "runtime-tokio-rustls",
+    "sqlx-sqlite",
+    "uuid",
+    "chrono",
+    "macros",
+    "debug-print",
+] }

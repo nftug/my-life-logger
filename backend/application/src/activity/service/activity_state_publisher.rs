@@ -46,9 +46,9 @@ impl ActivityStatePublisher {
             if self.current_state.read().await.as_ref().map(|a| a.date()) != Some(ctx.today()) {
                 let new_state = self
                     .repository
-                    .load(ctx.tz(), ctx.today())
+                    .load(&ctx, ctx.today())
                     .await
-                    .unwrap_or(None)
+                    .unwrap_or_default()
                     .unwrap_or(ActivityState::new(ctx.today()));
                 self.current_state.write().await.replace(new_state);
             }

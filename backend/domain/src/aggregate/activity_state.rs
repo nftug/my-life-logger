@@ -2,9 +2,9 @@ use std::vec::IntoIter;
 
 use crate::{
     audit::audit_context::AuditContext,
-    entity::{Activity, ActivityId, CategoryId},
-    shared::errors::DomainError,
-    values::TimeRange,
+    entity::{Activity, ActivityId},
+    shared::errors::{DomainError, PersistenceError},
+    values::{CategoryReference, TimeRange},
 };
 use chrono::{DateTime, NaiveDate, Utc};
 use itertools::Itertools;
@@ -33,9 +33,12 @@ impl ActivityState {
         self.date
     }
 
-    pub fn hydrate(date: NaiveDate, activities_all: Vec<Activity>) -> Result<Self, DomainError> {
+    pub fn hydrate(
+        date: NaiveDate,
+        activities_all: Vec<Activity>,
+    ) -> Result<Self, PersistenceError> {
         if activities_all.iter().any(|a| a.date() != date) {
-            return Err(DomainError::HydrationError(
+            return Err(PersistenceError::HydrationError(
                 "Activity does not belong to the specified date".to_string(),
             ));
         }
@@ -44,7 +47,7 @@ impl ActivityState {
             activities_all.into_iter().partition(|a| a.is_active());
 
         if active.len() > 1 {
-            return Err(DomainError::HydrationError(
+            return Err(PersistenceError::HydrationError(
                 "Multiple active activities found during hydration".to_string(),
             ));
         }
@@ -67,10 +70,10 @@ impl ActivityState {
     pub fn start(
         &mut self,
         ctx: &AuditContext,
-        category_id: CategoryId,
+        category: CategoryReference,
         description: Option<String>,
     ) -> Result<(), DomainError> {
-        self.upsert_active(ctx, category_id, description, ctx.now())
+        self.upsert_active(ctx, category, description, ctx.now())
     }
 
     pub fn stop(&mut self, ctx: &AuditContext) -> Result<(), DomainError> {
@@ -83,7 +86,7 @@ impl ActivityState {
     pub fn upsert_active(
         &mut self,
         ctx: &AuditContext,
-        category_id: CategoryId,
+        category: CategoryReference,
         description: Option<String>,
         started_at: DateTime<Utc>,
     ) -> Result<(), DomainError> {
@@ -92,10 +95,10 @@ impl ActivityState {
         let activity = match &self.active {
             Some(existing) => {
                 let mut updated = existing.clone();
-                updated.edit(ctx, category_id, description, time_range)?;
+                updated.edit(ctx, category, description, time_range)?;
                 updated
             }
-            None => Activity::new(ctx, category_id, description, time_range),
+            None => Activity::new(ctx, category, description, time_range),
         };
 
         self.place_activity(ctx, activity)
@@ -114,7 +117,7 @@ impl ActivityState {
         &mut self,
         ctx: &AuditContext,
         activity_id: Option<ActivityId>,
-        category_id: CategoryId,
+        category: CategoryReference,
         description: Option<String>,
         started_at: DateTime<Utc>,
         ended_at: DateTime<Utc>,
@@ -130,10 +133,10 @@ impl ActivityState {
                     .cloned()
                     .ok_or(DomainError::ActivityNotFound)?;
 
-                existing.edit(ctx, category_id, description, time_range)?;
+                existing.edit(ctx, category, description, time_range)?;
                 existing
             }
-            None => Activity::new(ctx, category_id, description, time_range),
+            None => Activity::new(ctx, category, description, time_range),
         };
 
         self.place_activity(ctx, activity)

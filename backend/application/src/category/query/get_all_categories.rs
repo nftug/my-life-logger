@@ -13,10 +13,6 @@ pub struct GetAllCategoriesService {
 impl GetAllCategoriesService {
     pub async fn handle(&self) -> Result<Vec<CategoryResponseDto>, ApplicationError> {
         let categories = self.repository.find_all().await?;
-
-        Ok(categories
-            .iter()
-            .map(CategoryResponseDto::from_domain)
-            .collect())
+        Ok(categories.iter().map(|c| c.into()).collect())
     }
 }

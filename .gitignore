@@ -11,3 +11,4 @@ vite.config.ts.timestamp-*
 **/generated
 /target/
 .VSCodeCounter/
+db.sqlite3

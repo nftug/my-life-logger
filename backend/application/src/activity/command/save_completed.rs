@@ -28,20 +28,22 @@ impl SaveCompletedActivityService {
     ) -> Result<(), ApplicationError> {
         let ctx = AuditContext::new(self.clock.as_ref());
 
-        if !self.category_repository.exists(request.category_id).await? {
-            return Err(DomainError::CategoryNotFound.into());
-        }
+        let category = self
+            .category_repository
+            .find_by_id(request.category_id)
+            .await?
+            .ok_or(DomainError::CategoryNotFound)?;
 
         let mut activity_state = self
             .repository
-            .load(ctx.tz(), ctx.today())
+            .load(&ctx, ctx.today())
             .await?
             .unwrap_or(ActivityState::new(ctx.today()));
 
         activity_state.upsert_completed(
             &ctx,
             identity.activity_id,
-            request.category_id,
+            category.into(),
             request.description,
             request.started_at,
             request.ended_at,

@@ -3,9 +3,12 @@ use chrono::{DateTime, NaiveDate, Utc};
 use crate::{
     audit::AuditContext,
     define_id,
-    entity::category::CategoryId,
-    shared::{EntityIdTrait, errors::DomainError},
-    values::TimeRange,
+    entity::CategoryId,
+    shared::{
+        EntityIdTrait,
+        errors::{DomainError, PersistenceError},
+    },
+    values::{CategoryReference, TimeRange},
 };
 
 define_id!(ActivityId);
@@ -13,7 +16,7 @@ define_id!(ActivityId);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Activity {
     id: ActivityId,
-    category_id: CategoryId,
+    category: CategoryReference,
     description: Option<String>,
     time_range: TimeRange,
     date: NaiveDate,
@@ -23,8 +26,11 @@ impl Activity {
     pub fn id(&self) -> ActivityId {
         self.id
     }
+    pub fn category(&self) -> &CategoryReference {
+        &self.category
+    }
     pub fn category_id(&self) -> CategoryId {
-        self.category_id
+        self.category.category_id()
     }
     pub fn description(&self) -> Option<&str> {
         self.description.as_deref()
@@ -58,20 +64,20 @@ impl Activity {
     pub fn hydrate(
         ctx: &AuditContext,
         id: ActivityId,
-        category_id: CategoryId,
+        category: CategoryReference,
         description: Option<String>,
         time_range: TimeRange,
         date: NaiveDate,
-    ) -> Result<Self, DomainError> {
+    ) -> Result<Self, PersistenceError> {
         if !time_range.is_in_date(ctx, date) {
-            return Err(DomainError::HydrationError(
+            return Err(PersistenceError::HydrationError(
                 "TimeRange does not belong to the specified date".to_string(),
             ));
         }
 
         Ok(Self {
             id,
-            category_id,
+            category,
             description,
             time_range,
             date,
@@ -80,7 +86,7 @@ impl Activity {
 
     pub fn new(
         ctx: &AuditContext,
-        category_id: CategoryId,
+        category: CategoryReference,
         description: Option<String>,
         time_range: TimeRange,
     ) -> Self {
@@ -88,7 +94,7 @@ impl Activity {
 
         Self {
             id: ActivityId::new_v4(),
-            category_id,
+            category,
             description,
             time_range,
             date,
@@ -110,7 +116,7 @@ impl Activity {
     pub fn edit(
         &mut self,
         ctx: &AuditContext,
-        new_category_id: CategoryId,
+        new_category: CategoryReference,
         new_description: Option<String>,
         new_time_range: TimeRange,
     ) -> Result<(), DomainError> {
@@ -119,7 +125,7 @@ impl Activity {
         }
 
         self.time_range = new_time_range;
-        self.category_id = new_category_id;
+        self.category = new_category;
         self.description = new_description;
 
         Ok(())
