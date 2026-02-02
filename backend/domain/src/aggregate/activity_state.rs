@@ -1,3 +1,5 @@
+use std::vec::IntoIter;
+
 use crate::{
     audit::audit_context::AuditContext,
     entity::{Activity, ActivityId, CategoryId},
@@ -18,10 +20,10 @@ impl ActivityState {
     pub fn active(&self) -> Option<&Activity> {
         self.active.as_ref()
     }
-    pub fn completed(&self) -> std::vec::IntoIter<&Activity> {
+    pub fn completed(&self) -> IntoIter<&Activity> {
         self.completed.iter().sorted_by_key(|a| a.started_at())
     }
-    pub fn all(&self) -> std::vec::IntoIter<&Activity> {
+    pub fn all(&self) -> IntoIter<&Activity> {
         self.completed
             .iter()
             .chain(self.active.iter())

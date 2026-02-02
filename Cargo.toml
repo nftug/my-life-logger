@@ -15,9 +15,7 @@ version = "0.1.0"
 authors = ["Harakazu"]
 description = "My Life Logger Application"
 
-
 [workspace.dependencies]
-tauri-app = { path = "src-tauri" }
 domain = { path = "backend/domain" }
 infrastructure = { path = "backend/infrastructure" }
 application = { path = "backend/application" }
@@ -35,12 +33,9 @@ itertools = "0.14.0"
 tracing = { version = "0.1.44", features = ["log"] }
 async-trait = "0.1.89"
 
-[profile.dev.build-override]
-incremental = false
-
 [profile.release]
 lto = true
-opt-level = "z"
+opt-level = "s"
 codegen-units = 1
 panic = "abort"
 strip = "symbols"

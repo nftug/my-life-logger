@@ -20,7 +20,7 @@ pub struct GetActivityStateService {
 impl GetActivityStateService {
     pub async fn handle(
         &self,
-        identity: &GetActivityStateIdentityDto,
+        identity: GetActivityStateIdentityDto,
     ) -> Result<ActivityStateResponseDto, ApplicationError> {
         let ctx = AuditContext::new(self.clock.as_ref());
 

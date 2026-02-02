@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 
 use domain::{
     aggregate::ActivityState,
@@ -40,8 +40,6 @@ impl ActivityStatePublisher {
     }
 
     async fn run_publisher(&self) {
-        let mut interval = tokio::time::interval(Duration::from_secs(1));
-
         loop {
             let ctx = AuditContext::new(self.clock.as_ref());
 
@@ -65,7 +63,7 @@ impl ActivityStatePublisher {
                 )
                 .await;
 
-            interval.tick().await;
+            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         }
     }
 
@@ -76,5 +74,10 @@ impl ActivityStatePublisher {
     pub async fn update_state(&self, state: &ActivityState) {
         let mut current_state = self.current_state.write().await;
         current_state.replace(state.clone());
+
+        let ctx = AuditContext::new(self.clock.as_ref());
+        self.pubsub
+            .publish(Some(ActivityStateEventDto::from_domain(&ctx, state)))
+            .await;
     }
 }

@@ -18,6 +18,5 @@ itertools.workspace = true
 async-trait.workspace = true
 derive-new.workspace = true
 
-garde = { version = "0.22.1", features = ["derive"] }
 pubsub-rs = "0.1.1"
 tokio = { version = "1.49.0", features = ["macros", "time"] }
