@@ -1,18 +1,25 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> Result<String, String> {
-    if name.trim().is_empty() {
-        Err("Name cannot be empty.".into())
-    } else {
-        Ok(format!("Hello, {}! You've been greeted from Rust!", name))
-    }
-}
+pub mod app_module;
+pub mod commands;
+pub mod events;
+pub mod state;
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+use tauri::{AppHandle, Emitter, Manager};
+
+use crate::state::AppState;
+
+pub fn start_activity_publisher(app_handle: AppHandle) {
+    let activity_state_publisher = app_handle
+        .state::<AppState>()
+        .activity
+        .activity_state_publisher
+        .clone();
+
+    activity_state_publisher.clone().start();
+
+    activity_state_publisher.subscribe({
+        let app_handle = app_handle.clone();
+        move |event| {
+            let _ = app_handle.emit(events::ACTIVITY_STATE_EVENT, event);
+        }
+    });
 }
