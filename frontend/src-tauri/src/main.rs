@@ -18,7 +18,7 @@ fn main() {
         .setup(|app| {
             let state = my_life_logger_lib::app_module::build_app_state(app)?;
             app.manage(state);
-            my_life_logger_lib::start_activity_publisher(app.handle().clone());
+            my_life_logger_lib::start_activity_publisher(app.handle());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

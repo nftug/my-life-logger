@@ -36,7 +36,7 @@
       "includePatterns": null,
       "includePrivate": false,
       "outputPath": "../src/generated",
-      "projectPath": ".",
+      "projectPath": "../../",
       "typeMappings": {
         "DateTime<Utc>": "string",
         "NaiveDate": "string",
