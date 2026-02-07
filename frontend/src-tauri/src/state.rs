@@ -14,6 +14,7 @@ use infrastructure::{
     category::CategoryRepositoryImpl,
     database::{ConnectionPool, DatabaseConfig},
 };
+use tauri::Manager;
 
 pub struct AppState {
     pub activity: ActivityServices,
@@ -31,9 +32,12 @@ pub struct ActivityServices {
 }
 
 impl AppState {
-    pub async fn new(database_url: String) -> Result<Self, anyhow::Error> {
-        let config = DatabaseConfig::new(database_url);
-        let pool = ConnectionPool::new(&config)
+    pub async fn new(app: &tauri::App) -> Result<Self, anyhow::Error> {
+        let app_config_dir = app.path().app_config_dir()?;
+        std::fs::create_dir_all(&app_config_dir)?;
+        let database_config = DatabaseConfig::new(app_config_dir.join("my_life_logger.db"));
+
+        let pool = ConnectionPool::new(&database_config)
             .await
             .map_err(|err| io::Error::other(err.to_string()))?;
 

@@ -1,1 +1,3 @@
-pub const ACTIVITY_STATE_EVENT: &str = "activity_state_event";
+pub mod activity_state_event;
+
+pub use activity_state_event::*;

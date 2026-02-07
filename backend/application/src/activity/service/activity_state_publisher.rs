@@ -13,7 +13,7 @@ pub struct ActivityStatePublisher {
     repository: Arc<dyn ActivityStateRepository>,
     clock: Arc<dyn Clock>,
     current_state: RwLock<Option<ActivityState>>,
-    pubsub: PubsubStream<Option<ActivityStateEventDto>>,
+    pubsub: PubsubStream<ActivityStateEventDto>,
     init_once: OnceCell<()>,
 }
 
@@ -59,7 +59,8 @@ impl ActivityStatePublisher {
                         .read()
                         .await
                         .as_ref()
-                        .map(|a| ActivityStateEventDto::from_domain(&ctx, a)),
+                        .map(|state| ActivityStateEventDto::from_domain(&ctx, state))
+                        .unwrap(),
                 )
                 .await;
 
@@ -67,7 +68,7 @@ impl ActivityStatePublisher {
         }
     }
 
-    pub fn subscribe(&self, on_event: impl FnMut(Option<ActivityStateEventDto>) + Send + 'static) {
+    pub fn subscribe(&self, on_event: impl FnMut(ActivityStateEventDto) + Send + 'static) {
         self.pubsub.subscribe(on_event);
     }
 
@@ -77,7 +78,7 @@ impl ActivityStatePublisher {
 
         let ctx = AuditContext::new(self.clock.as_ref());
         self.pubsub
-            .publish(Some(ActivityStateEventDto::from_domain(&ctx, state)))
+            .publish(ActivityStateEventDto::from_domain(&ctx, state))
             .await;
     }
 }

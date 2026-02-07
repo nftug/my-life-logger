@@ -1,36 +1,38 @@
-pub mod app_module;
+use tauri::Manager;
+
 pub mod commands;
 pub mod events;
 pub mod state;
 
-use tauri::{AppHandle, Emitter, Manager};
-
-use crate::state::AppState;
-
-pub fn start_activity_publisher(app: &AppHandle) {
-    tauri::async_runtime::spawn({
-        let app = app.clone();
-        async move {
-            let activity_state_publisher = app
-                .state::<AppState>()
-                .activity
-                .activity_state_publisher
-                .start();
-
-            activity_state_publisher.subscribe({
-                let app = app.clone();
-                move |event| {
-                    let _ = app.emit(events::ACTIVITY_STATE_EVENT, event);
-                }
-            });
-        }
-    });
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .setup(|app| {
+            let state = tauri::async_runtime::block_on(state::AppState::new(app))?;
+            app.manage(state);
+            events::start_activity_publisher(app.handle());
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            commands::activity_commands::get_activity_state,
+            commands::activity_commands::start_activity,
+            commands::activity_commands::stop_activity,
+            commands::activity_commands::cancel_active_activity,
+            commands::activity_commands::save_active_activity,
+            commands::activity_commands::save_completed_activity,
+            commands::activity_commands::delete_completed_activity
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
 
-#[allow(dead_code)]
-fn __typegen_activity_events(app: &AppHandle) {
-    let _ = app.emit(
-        crate::events::ACTIVITY_STATE_EVENT,
-        Option::<application::activity::ActivityStateEventDto>::None,
-    );
+#[tauri::command]
+fn greet(name: &str) -> Result<String, String> {
+    if name.trim().is_empty() {
+        Err("Name cannot be empty.".into())
+    } else {
+        Ok(format!("Hello, {}! You've been greeted from Rust!", name))
+    }
 }

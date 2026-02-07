@@ -2729,9 +2729,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "application",
+ "chrono",
  "domain",
  "infrastructure",
- "serde",
  "serde_json",
  "tauri",
  "tauri-build",

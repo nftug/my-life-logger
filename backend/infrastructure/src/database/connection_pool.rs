@@ -8,7 +8,13 @@ use crate::database::{
 
 impl From<&DatabaseConfig> for ConnectOptions {
     fn from(config: &DatabaseConfig) -> Self {
-        let mut options = ConnectOptions::new(config.url.clone());
+        let mut database_path_str = config.database_path.to_string_lossy().to_string();
+        if cfg!(windows) {
+            database_path_str = database_path_str.replace('\\', "/");
+        }
+        let database_url = format!("sqlite://{}?mode=rwc", database_path_str);
+
+        let mut options = ConnectOptions::new(database_url);
         options.sqlx_logging(false);
         options
     }
