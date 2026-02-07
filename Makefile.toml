@@ -1,9 +1,6 @@
 [config]
 default_to_workspace = false
 
-[env]
-DATABASE_URL = "sqlite://db.sqlite3?mode=rwc"
-
 [tasks.install-sea-orm-cli]
 install_crate = { crate_name = "sea-orm-cli", version = "2.0.0-rc.28", binary = "sea-orm-cli", test_arg = "--help" }
 

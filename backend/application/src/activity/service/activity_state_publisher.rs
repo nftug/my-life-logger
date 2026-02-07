@@ -28,7 +28,7 @@ impl ActivityStatePublisher {
         })
     }
 
-    pub fn start(self: Arc<ActivityStatePublisher>) -> Arc<Self> {
+    pub fn start(self: &Arc<Self>) -> Arc<Self> {
         tokio::spawn({
             let this = self.clone();
             async move {
@@ -36,7 +36,7 @@ impl ActivityStatePublisher {
             }
         });
 
-        self
+        self.clone()
     }
 
     async fn run_publisher(&self) {
