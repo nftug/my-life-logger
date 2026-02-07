@@ -60,7 +60,7 @@ args = ["clippy", "--all", "--all-targets", "${@}"]
 command = "cargo"
 args = ["test", "--all-features", "${@}"]
 
-[tasks.tauri-typegen]
+[tasks.typegen]
 cwd = "frontend/src-tauri"
 command = "cargo"
 args = ["tauri-typegen", "generate", "${@}"]
