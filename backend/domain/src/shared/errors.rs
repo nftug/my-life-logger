@@ -2,21 +2,21 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum DomainError {
-    #[error("Activity is already active")]
+    #[error("すでに進行中の活動があります")]
     AlreadyActive,
-    #[error("No active activity found")]
+    #[error("進行中の活動が見つかりません")]
     NoActiveActivity,
-    #[error("Activity already stopped")]
+    #[error("この活動はすでに停止されています")]
     AlreadyStopped,
-    #[error("Activity time range is invalid")]
+    #[error("活動時間の範囲が不正です")]
     InvalidTimeRange,
-    #[error("Activity does not belong to the specified date")]
+    #[error("活動が指定した日付に属していません")]
     ActivityNotInSpecifiedDate,
-    #[error("Activity overlaps with an existing activity")]
+    #[error("活動時間が既存の活動と重複しています")]
     ActivityOverlap,
-    #[error("Activity not found")]
+    #[error("活動が見つかりません")]
     ActivityNotFound,
-    #[error("Category not found")]
+    #[error("カテゴリが見つかりません")]
     CategoryNotFound,
     #[error("{0}")]
     GenericError(String),
@@ -24,10 +24,10 @@ pub enum DomainError {
 
 #[derive(Error, Debug)]
 pub enum PersistenceError {
-    #[error("Database error: {0}")]
+    #[error("データベースエラー: {0}")]
     DatabaseError(String),
     #[error("{0}")]
     HydrationError(String),
-    #[error("Entity not found")]
+    #[error("データが見つかりません")]
     NotFound,
 }
