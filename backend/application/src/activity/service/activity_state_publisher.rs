@@ -44,13 +44,13 @@ impl ActivityStatePublisher {
             let ctx = AuditContext::new(self.clock.as_ref());
 
             if self.current_state.read().await.as_ref().map(|a| a.date()) != Some(ctx.today()) {
-                let new_state = self
-                    .repository
-                    .load(&ctx, ctx.today())
-                    .await
-                    .unwrap_or_default()
-                    .unwrap_or(ActivityState::new(ctx.today()));
-                self.current_state.write().await.replace(new_state);
+                self.current_state.write().await.replace(
+                    self.repository
+                        .load(&ctx, ctx.today())
+                        .await
+                        .unwrap_or_default()
+                        .unwrap_or(ActivityState::new(ctx.today())),
+                );
             }
 
             self.pubsub
@@ -73,8 +73,7 @@ impl ActivityStatePublisher {
     }
 
     pub async fn update_state(&self, state: &ActivityState) {
-        let mut current_state = self.current_state.write().await;
-        current_state.replace(state.clone());
+        self.current_state.write().await.replace(state.clone());
 
         let ctx = AuditContext::new(self.clock.as_ref());
         self.pubsub
