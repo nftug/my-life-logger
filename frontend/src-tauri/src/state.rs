@@ -1,9 +1,15 @@
 use std::{io, sync::Arc};
 
-use application::activity::{
-    ActivityStatePublisher, CancelActiveActivityService, DeleteCompletedActivityService,
-    GetActivityStateService, SaveActiveActivityService, SaveCompletedActivityService,
-    StartActivityService, StopActivityService,
+use application::{
+    activity::{
+        ActivityStatePublisher, CancelActiveActivityService, DeleteCompletedActivityService,
+        GetActivityStateService, SaveActiveActivityService, SaveCompletedActivityService,
+        StartActivityService, StopActivityService,
+    },
+    category::{
+        CreateCategoryService, DeleteCategoryService, GetAllCategoriesService,
+        RenameCategoryService,
+    },
 };
 use domain::{
     audit::clock::SystemClock,
@@ -18,6 +24,7 @@ use tauri::Manager;
 
 pub struct AppState {
     pub activity: ActivityServices,
+    pub category: CategoryServices,
 }
 
 pub struct ActivityServices {
@@ -29,6 +36,13 @@ pub struct ActivityServices {
     pub save_completed_activity: SaveCompletedActivityService,
     pub delete_completed_activity: DeleteCompletedActivityService,
     pub activity_state_publisher: Arc<ActivityStatePublisher>,
+}
+
+pub struct CategoryServices {
+    pub create_category: CreateCategoryService,
+    pub rename_category: RenameCategoryService,
+    pub delete_category: DeleteCategoryService,
+    pub get_all_categories: GetAllCategoriesService,
 }
 
 impl AppState {
@@ -89,6 +103,13 @@ impl AppState {
             activity_state_publisher,
         };
 
-        Ok(Self { activity })
+        let category = CategoryServices {
+            create_category: CreateCategoryService::new(category_repository.clone()),
+            rename_category: RenameCategoryService::new(category_repository.clone()),
+            delete_category: DeleteCategoryService::new(category_repository.clone()),
+            get_all_categories: GetAllCategoriesService::new(category_repository),
+        };
+
+        Ok(Self { activity, category })
     }
 }

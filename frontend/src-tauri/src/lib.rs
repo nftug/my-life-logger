@@ -22,7 +22,11 @@ pub fn run() {
             commands::activity_commands::cancel_active_activity,
             commands::activity_commands::save_active_activity,
             commands::activity_commands::save_completed_activity,
-            commands::activity_commands::delete_completed_activity
+            commands::activity_commands::delete_completed_activity,
+            commands::category_commands::get_all_categories,
+            commands::category_commands::create_category,
+            commands::category_commands::rename_category,
+            commands::category_commands::delete_category,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

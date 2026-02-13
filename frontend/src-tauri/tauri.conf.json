@@ -40,6 +40,7 @@
       "typeMappings": {
         "DateTime<Utc>": "string",
         "NaiveDate": "string",
+        "Uuid": "string",
         "ActivityId": "string",
         "CategoryId": "string"
       },
