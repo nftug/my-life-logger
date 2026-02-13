@@ -2318,6 +2318,7 @@ dependencies = [
  "derive-new",
  "domain",
  "itertools",
+ "migration",
  "sea-orm",
  "serde",
  "thiserror 2.0.18",

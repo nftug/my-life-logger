@@ -10,6 +10,7 @@ description.workspace = true
 [dependencies]
 domain.workspace = true
 application.workspace = true
+migration = { path = "../migration" }
 
 uuid.workspace = true
 serde.workspace = true

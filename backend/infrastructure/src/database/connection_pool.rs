@@ -1,10 +1,8 @@
 use domain::shared::errors::PersistenceError;
+use migration::{Migrator, MigratorTrait};
 use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr};
 
-use crate::database::{
-    DatabaseConfig,
-    entity::{activities, categories},
-};
+use crate::database::DatabaseConfig;
 
 impl From<&DatabaseConfig> for ConnectOptions {
     fn from(config: &DatabaseConfig) -> Self {
@@ -32,10 +30,8 @@ impl ConnectionPool {
         let options: ConnectOptions = config.into();
         let db = Database::connect(options).await?;
 
-        // setup schema
-        db.get_schema_builder()
-            .register(activities::Entity)
-            .register(categories::Entity);
+        // setup schema metadata for SeaORM and run DB migrations
+        Migrator::up(&db, None).await?;
 
         Ok(Self(db))
     }
