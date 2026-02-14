@@ -12,7 +12,9 @@ const CompletedActivitiesCard = (props: DashboardSectionProps) => (
           class="btn btn-primary btn-sm"
           onClick={() => props.model.actions.openCreateCompletedModal()}
           disabled={
-            props.model.state.isSelectedDateLocked() || !props.model.state.hasCategories()
+            props.model.state.isActionPending() ||
+            !props.model.state.hasCategories() ||
+            !props.model.state.isTodaySelected()
           }
         >
           完了活動を追加
@@ -55,7 +57,7 @@ const CompletedActivitiesCard = (props: DashboardSectionProps) => (
                           type="button"
                           class="btn btn-xs"
                           onClick={() => props.model.actions.openEditCompletedModal(activity)}
-                          disabled={props.model.state.isSelectedDateLocked()}
+                          disabled={props.model.state.isActionPending()}
                         >
                           編集
                         </button>
@@ -63,7 +65,7 @@ const CompletedActivitiesCard = (props: DashboardSectionProps) => (
                           type="button"
                           class="btn btn-error btn-xs btn-outline"
                           onClick={() => void props.model.actions.deleteCompleted(activity)}
-                          disabled={props.model.state.isSelectedDateLocked()}
+                          disabled={props.model.state.isActionPending()}
                         >
                           削除
                         </button>

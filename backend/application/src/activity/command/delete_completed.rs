@@ -23,7 +23,7 @@ impl DeleteCompletedActivityService {
 
         let mut activity_state = self
             .repository
-            .load(&ctx, ctx.today())
+            .load(&ctx, identity.date)
             .await?
             .ok_or(ApplicationError::NotFound)?;
 

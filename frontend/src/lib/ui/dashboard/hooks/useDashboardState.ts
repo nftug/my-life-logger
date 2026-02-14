@@ -74,7 +74,8 @@ export const useDashboardState = (): DashboardViewModel => {
   const [categories] = createResource(() => getAllCategories())
 
   const isTodaySelected = createMemo(() => isToday(selectedDate()))
-  const isSelectedDateLocked = createMemo(() => pendingAction() !== null || !isTodaySelected())
+  const isActionPending = createMemo(() => pendingAction() !== null)
+  const isSelectedDateLocked = createMemo(() => isActionPending() || !isTodaySelected())
   const hasCategories = createMemo(() => (categories()?.length ?? 0) > 0)
 
   const resolvedDurationSeconds = createMemo(() => {
@@ -270,11 +271,13 @@ export const useDashboardState = (): DashboardViewModel => {
         return
       }
 
+      const date = selectedDate()
       const isSaved = await runDashboardAction(
         'save-completed',
         () =>
           saveCompletedActivity({
             identity: {
+              date,
               activityId: modalState.form.activityId ?? null,
             },
             request: {
@@ -303,11 +306,13 @@ export const useDashboardState = (): DashboardViewModel => {
         return
       }
 
+      const date = selectedDate()
       await runDashboardAction(
         'delete-completed',
         () =>
           deleteCompletedActivity({
             identity: {
+              date,
               activityId: activity.id,
             },
           }),
@@ -319,6 +324,7 @@ export const useDashboardState = (): DashboardViewModel => {
   const state: DashboardStateModel = {
     selectedDate,
     pendingAction,
+    isActionPending,
     activeDurationSeconds,
     activeForm,
     completedModal,

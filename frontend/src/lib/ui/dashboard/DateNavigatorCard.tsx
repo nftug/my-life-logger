@@ -1,6 +1,5 @@
 import { formatDateLabel } from '@/lib/ui/dashboard/utils/formatters'
 import type { DashboardSectionProps } from '@/lib/ui/dashboard/types'
-import { Show } from 'solid-js'
 
 const DateNavigatorCard = (props: DashboardSectionProps) => (
   <div class="card border border-base-300 bg-base-100 shadow-sm">
@@ -27,9 +26,6 @@ const DateNavigatorCard = (props: DashboardSectionProps) => (
           翌日
         </button>
         <div class="badge badge-outline">{formatDateLabel(props.model.state.selectedDate())}</div>
-        <Show when={!props.model.state.isTodaySelected()}>
-          <div class="badge badge-warning badge-outline">過去日: 編集保存は未対応</div>
-        </Show>
       </div>
     </div>
   </div>

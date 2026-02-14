@@ -1,6 +1,6 @@
 import ActivityEditorForm from '@/lib/ui/dashboard/ActivityEditorForm'
-import { formatDuration, formatTimeLabel } from '@/lib/ui/dashboard/utils/formatters'
 import type { DashboardSectionProps } from '@/lib/ui/dashboard/types'
+import { formatDuration, formatTimeLabel } from '@/lib/ui/dashboard/utils/formatters'
 import { Show } from 'solid-js'
 
 const ActiveActivityCard = (props: DashboardSectionProps) => (
@@ -18,7 +18,10 @@ const ActiveActivityCard = (props: DashboardSectionProps) => (
       <Show
         when={props.model.state.activityState()?.activeActivity}
         fallback={
-          <form class="space-y-3" onSubmit={(event) => void props.model.actions.startActivity(event)}>
+          <form
+            class="space-y-3"
+            onSubmit={(event) => void props.model.actions.startActivity(event)}
+          >
             <ActivityEditorForm
               categories={props.model.state.categories() ?? []}
               categoryId={props.model.state.activeForm().categoryId}
@@ -26,9 +29,15 @@ const ActiveActivityCard = (props: DashboardSectionProps) => (
               showStartedAt={false}
               description={props.model.state.activeForm().description}
               descriptionPlaceholder="何をしているか簡単にメモできます"
-              onCategoryIdChange={(value) => props.model.actions.setActiveForm({ categoryId: value })}
-              onStartedAtChange={(value) => props.model.actions.setActiveForm({ startedAtLocal: value })}
-              onDescriptionChange={(value) => props.model.actions.setActiveForm({ description: value })}
+              onCategoryIdChange={(value) =>
+                props.model.actions.setActiveForm({ categoryId: value })
+              }
+              onStartedAtChange={(value) =>
+                props.model.actions.setActiveForm({ startedAtLocal: value })
+              }
+              onDescriptionChange={(value) =>
+                props.model.actions.setActiveForm({ description: value })
+              }
             />
 
             <div class="flex flex-wrap items-center gap-2">
@@ -43,9 +52,6 @@ const ActiveActivityCard = (props: DashboardSectionProps) => (
               >
                 活動を開始
               </button>
-              <Show when={!props.model.state.isTodaySelected()}>
-                <span class="text-sm text-warning">過去日の開始は未対応です。</span>
-              </Show>
             </div>
           </form>
         }
@@ -93,9 +99,6 @@ const ActiveActivityCard = (props: DashboardSectionProps) => (
               >
                 キャンセル
               </button>
-              <Show when={!props.model.state.isTodaySelected()}>
-                <span class="text-sm text-warning">過去日の編集保存は未対応です。</span>
-              </Show>
             </div>
           </div>
         )}

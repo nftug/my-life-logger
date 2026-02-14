@@ -73,7 +73,8 @@ const ActivityEditorModalFrame = (props: ActivityEditorModalFrameProps) => (
 const ActivityEditorModal = (props: ActivityEditorModalProps) => {
   const editorConfig = createMemo<EditorConfig | null>(() => {
     const categories = props.model.state.categories() ?? []
-    const isLocked = props.model.state.isSelectedDateLocked()
+    const isActionPending = props.model.state.isActionPending()
+    const isActiveLocked = props.model.state.isSelectedDateLocked()
 
     const completedModal = props.model.state.completedModal()
     if (completedModal) {
@@ -83,7 +84,7 @@ const ActivityEditorModal = (props: ActivityEditorModalProps) => {
         onSave: (event) => {
           void props.model.actions.saveCompleted(event)
         },
-        saveDisabled: isLocked,
+        saveDisabled: isActionPending,
         categories,
         categoryId: completedModal.form.categoryId,
         startedAtLocal: completedModal.form.startedAtLocal,
@@ -94,9 +95,6 @@ const ActivityEditorModal = (props: ActivityEditorModalProps) => {
         onStartedAtChange: (value) => props.model.actions.setCompletedForm({ startedAtLocal: value }),
         onEndedAtChange: (value) => props.model.actions.setCompletedForm({ endedAtLocal: value }),
         onDescriptionChange: (value) => props.model.actions.setCompletedForm({ description: value }),
-        warningMessage: props.model.state.isTodaySelected()
-          ? undefined
-          : '過去日の保存・削除は未対応です。入力内容は保持できますが保存はできません。',
       }
     }
 
@@ -109,7 +107,7 @@ const ActivityEditorModal = (props: ActivityEditorModalProps) => {
           event.preventDefault()
           void props.model.actions.saveActive()
         },
-        saveDisabled: isLocked,
+        saveDisabled: isActiveLocked,
         categories,
         categoryId: props.model.state.activeForm().categoryId,
         startedAtLocal: props.model.state.activeForm().startedAtLocal,
@@ -118,9 +116,6 @@ const ActivityEditorModal = (props: ActivityEditorModalProps) => {
         onCategoryIdChange: (value) => props.model.actions.setActiveForm({ categoryId: value }),
         onStartedAtChange: (value) => props.model.actions.setActiveForm({ startedAtLocal: value }),
         onDescriptionChange: (value) => props.model.actions.setActiveForm({ description: value }),
-        warningMessage: props.model.state.isTodaySelected()
-          ? undefined
-          : '過去日の保存は未対応です。入力内容は保持できますが保存はできません。',
       }
     }
 

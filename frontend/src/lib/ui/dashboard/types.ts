@@ -11,6 +11,7 @@ export type ActiveActionConfirmType = 'stop' | 'cancel'
 export interface DashboardStateModel {
   selectedDate: Accessor<string>
   pendingAction: Accessor<string | null>
+  isActionPending: Accessor<boolean>
   activeDurationSeconds: Accessor<number | null>
   activeForm: Accessor<ActiveActivityFormModel>
   completedModal: Accessor<CompletedActivityModalState | null>
