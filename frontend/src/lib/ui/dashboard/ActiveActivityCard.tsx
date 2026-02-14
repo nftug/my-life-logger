@@ -23,6 +23,7 @@ const ActiveActivityCard = (props: DashboardSectionProps) => (
               categories={props.model.state.categories() ?? []}
               categoryId={props.model.state.activeForm().categoryId}
               startedAtLocal={props.model.state.activeForm().startedAtLocal}
+              showStartedAt={false}
               description={props.model.state.activeForm().description}
               descriptionPlaceholder="何をしているか簡単にメモできます"
               onCategoryIdChange={(value) => props.model.actions.setActiveForm({ categoryId: value })}
@@ -35,9 +36,8 @@ const ActiveActivityCard = (props: DashboardSectionProps) => (
                 type="submit"
                 class="btn btn-primary"
                 disabled={
-                  props.model.state.pendingAction() !== null ||
+                  props.model.state.isSelectedDateLocked() ||
                   !props.model.state.hasCategories() ||
-                  !props.model.state.isTodaySelected() ||
                   !props.model.state.activeForm().categoryId
                 }
               >
@@ -52,66 +52,36 @@ const ActiveActivityCard = (props: DashboardSectionProps) => (
       >
         {(active) => (
           <div class="space-y-3">
-            <Show
-              when={props.model.state.isActiveEditing()}
-              fallback={
-                <button
-                  type="button"
-                  class="w-full rounded-box border border-base-300 p-0 text-left transition hover:border-base-content/40"
-                  onClick={() => props.model.actions.setIsActiveEditing(true)}
-                >
-                  <div class="flex items-center justify-between border-b border-base-300 px-4 py-3">
-                    <span class="text-sm text-base-content/70">カテゴリ</span>
-                    <span class="font-medium">{active().category.name}</span>
-                  </div>
-                  <div class="flex items-center justify-between border-b border-base-300 px-4 py-3">
-                    <span class="text-sm text-base-content/70">開始時刻</span>
-                    <span class="font-mono">{formatTimeLabel(active().startedAt)}</span>
-                  </div>
-                  <div class="flex items-center justify-between px-4 py-3">
-                    <span class="text-sm text-base-content/70">メモ</span>
-                    <span class="max-w-[70%] truncate text-right">{active().description || '-'}</span>
-                  </div>
-                </button>
-              }
-            >
-              <ActivityEditorForm
-                categories={props.model.state.categories() ?? []}
-                categoryId={props.model.state.activeForm().categoryId}
-                startedAtLocal={props.model.state.activeForm().startedAtLocal}
-                description={props.model.state.activeForm().description}
-                descriptionPlaceholder="何をしているか簡単にメモできます"
-                onCategoryIdChange={(value) => props.model.actions.setActiveForm({ categoryId: value })}
-                onStartedAtChange={(value) => props.model.actions.setActiveForm({ startedAtLocal: value })}
-                onDescriptionChange={(value) => props.model.actions.setActiveForm({ description: value })}
-              />
-            </Show>
+            <div class="w-full rounded-box border border-base-300 p-0">
+              <div class="flex items-center justify-between border-b border-base-300 px-4 py-3">
+                <span class="text-sm text-base-content/70">カテゴリ</span>
+                <span class="font-medium">{active().category.name}</span>
+              </div>
+              <div class="flex items-center justify-between border-b border-base-300 px-4 py-3">
+                <span class="text-sm text-base-content/70">開始時刻</span>
+                <span class="font-mono">{formatTimeLabel(active().startedAt)}</span>
+              </div>
+              <div class="flex items-center justify-between px-4 py-3">
+                <span class="text-sm text-base-content/70">メモ</span>
+                <span class="max-w-[70%] truncate text-right">{active().description || '-'}</span>
+              </div>
+            </div>
 
             <div class="flex flex-wrap items-center gap-2">
-              <Show when={props.model.state.isActiveEditing()}>
-                <button
-                  type="button"
-                  class="btn btn-primary"
-                  onClick={() => void props.model.actions.saveActive()}
-                  disabled={props.model.state.pendingAction() !== null || !props.model.state.isTodaySelected()}
-                >
-                  編集を保存
-                </button>
-                <button
-                  type="button"
-                  class="btn"
-                  onClick={() => props.model.actions.setIsActiveEditing(false)}
-                  disabled={props.model.state.pendingAction() !== null}
-                >
-                  編集をやめる
-                </button>
-              </Show>
+              <button
+                type="button"
+                class="btn"
+                onClick={() => props.model.actions.setIsActiveEditing(true)}
+                disabled={props.model.state.isSelectedDateLocked()}
+              >
+                編集
+              </button>
 
               <button
                 type="button"
                 class="btn btn-outline"
                 onClick={() => void props.model.actions.confirmActiveAction('stop')}
-                disabled={props.model.state.pendingAction() !== null || !props.model.state.isTodaySelected()}
+                disabled={props.model.state.isSelectedDateLocked()}
               >
                 停止
               </button>
@@ -119,7 +89,7 @@ const ActiveActivityCard = (props: DashboardSectionProps) => (
                 type="button"
                 class="btn btn-ghost"
                 onClick={() => void props.model.actions.confirmActiveAction('cancel')}
-                disabled={props.model.state.pendingAction() !== null || !props.model.state.isTodaySelected()}
+                disabled={props.model.state.isSelectedDateLocked()}
               >
                 キャンセル
               </button>

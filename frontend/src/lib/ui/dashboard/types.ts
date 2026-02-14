@@ -18,6 +18,7 @@ export interface DashboardStateModel {
   activityState: Accessor<ActivityStateResponseDto | undefined>
   categories: Accessor<CategoryResponseDto[] | undefined>
   isTodaySelected: Accessor<boolean>
+  isSelectedDateLocked: Accessor<boolean>
   hasCategories: Accessor<boolean>
   resolvedDurationSeconds: Accessor<number | null>
 }

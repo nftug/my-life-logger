@@ -74,6 +74,7 @@ export const useDashboardState = (): DashboardViewModel => {
   const [categories] = createResource(() => getAllCategories())
 
   const isTodaySelected = createMemo(() => isToday(selectedDate()))
+  const isSelectedDateLocked = createMemo(() => pendingAction() !== null || !isTodaySelected())
   const hasCategories = createMemo(() => (categories()?.length ?? 0) > 0)
 
   const resolvedDurationSeconds = createMemo(() => {
@@ -325,6 +326,7 @@ export const useDashboardState = (): DashboardViewModel => {
     activityState,
     categories,
     isTodaySelected,
+    isSelectedDateLocked,
     hasCategories,
     resolvedDurationSeconds,
   }

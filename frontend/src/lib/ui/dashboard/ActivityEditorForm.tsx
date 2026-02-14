@@ -5,6 +5,7 @@ interface ActivityEditorFormProps {
   categories: CategoryResponseDto[]
   categoryId: string
   startedAtLocal: string
+  showStartedAt?: boolean
   endedAtLocal?: string
   description: string
   descriptionPlaceholder: string
@@ -30,15 +31,17 @@ const ActivityEditorForm = (props: ActivityEditorFormProps) => (
       </select>
     </div>
 
-    <div class="flex items-center justify-between gap-3 border-b border-base-300 px-4 py-3">
-      <span class="text-sm text-base-content/70">開始時刻</span>
-      <input
-        type="datetime-local"
-        class="input input-bordered input-sm w-56 max-w-[70%]"
-        value={props.startedAtLocal}
-        onInput={(event) => props.onStartedAtChange(event.currentTarget.value)}
-      />
-    </div>
+    <Show when={props.showStartedAt ?? true}>
+      <div class="flex items-center justify-between gap-3 border-b border-base-300 px-4 py-3">
+        <span class="text-sm text-base-content/70">開始時刻</span>
+        <input
+          type="datetime-local"
+          class="input input-bordered input-sm w-56 max-w-[70%]"
+          value={props.startedAtLocal}
+          onInput={(event) => props.onStartedAtChange(event.currentTarget.value)}
+        />
+      </div>
+    </Show>
 
     <Show when={props.onEndedAtChange !== undefined}>
       <div class="flex items-center justify-between gap-3 border-b border-base-300 px-4 py-3">

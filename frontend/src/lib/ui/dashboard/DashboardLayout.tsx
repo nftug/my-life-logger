@@ -1,8 +1,8 @@
 import ActiveActivityCard from '@/lib/ui/dashboard/ActiveActivityCard'
 import CompletedActivitiesCard from '@/lib/ui/dashboard/CompletedActivitiesCard'
 import DateNavigatorCard from '@/lib/ui/dashboard/DateNavigatorCard'
+import ActivityEditorModal from '@/lib/ui/dashboard/modals/ActivityEditorModal'
 import type { DashboardSectionProps } from '@/lib/ui/dashboard/types'
-import CompletedActivityModal from '@/lib/ui/dashboard/modals/CompletedActivityModal'
 
 const DashboardLayout = (props: DashboardSectionProps) => (
   <div class="page-content">
@@ -14,7 +14,7 @@ const DashboardLayout = (props: DashboardSectionProps) => (
     <ActiveActivityCard model={props.model} />
     <CompletedActivitiesCard model={props.model} />
 
-    <CompletedActivityModal model={props.model} />
+    <ActivityEditorModal model={props.model} />
   </div>
 )
 
