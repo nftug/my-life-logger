@@ -36,9 +36,9 @@ impl SaveCompletedActivityService {
 
         let mut activity_state = self
             .repository
-            .load(&ctx, ctx.today())
+            .load(&ctx, identity.date)
             .await?
-            .unwrap_or(ActivityState::new(ctx.today()));
+            .unwrap_or(ActivityState::new(identity.date));
 
         activity_state.upsert_completed(
             &ctx,

@@ -3,11 +3,11 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ApplicationError {
-    #[error("Domain error: {0}")]
-    DomainError(DomainError),
-    #[error("Not found")]
-    NotFound,
     #[error("{0}")]
+    DomainError(DomainError),
+    #[error("対象データが見つかりません")]
+    NotFound,
+    #[error("内部エラー: {0}")]
     InternalError(String),
 }
 

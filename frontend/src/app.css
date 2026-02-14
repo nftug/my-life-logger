@@ -1,2 +1,18 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+@layer base {
+  body {
+    @apply bg-base-200 text-base-content antialiased;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply flex-1 overflow-y-auto p-4 md:p-6;
+  }
+
+  .page-content {
+    @apply mx-auto flex w-full max-w-6xl flex-col gap-4;
+  }
+}
