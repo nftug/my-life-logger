@@ -1,43 +1,42 @@
 import ThemeSwitcher from '@/lib/ui/components/ThemeSwitcher'
-import { A } from '@solidjs/router'
-import { Icon } from 'solid-heroicons'
-import { bars_3 } from 'solid-heroicons/solid'
-import type { ParentProps } from 'solid-js'
+import { Bars3Icon } from '@heroicons/react/24/solid'
+import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 
-const App = (props: ParentProps) => (
-  <div class="drawer">
-    <input id="app-drawer" type="checkbox" class="drawer-toggle" />
-    <div class="drawer-content min-h-screen">
-      <div class="navbar bg-base-100 shadow-sm">
-        <div class="flex-none">
-          <label for="app-drawer" class="btn btn-square btn-ghost" aria-label="Menu">
-            <Icon path={bars_3} class="h-6 w-6" />
+const App = ({ children }: { children: ReactNode }) => (
+  <div className="drawer">
+    <input id="app-drawer" type="checkbox" className="drawer-toggle" />
+    <div className="drawer-content min-h-screen">
+      <div className="navbar bg-base-100 shadow-sm">
+        <div className="flex-none">
+          <label htmlFor="app-drawer" className="btn btn-square btn-ghost" aria-label="Menu">
+            <Bars3Icon className="h-6 w-6" />
           </label>
         </div>
 
-        <div class="flex-1">
-          <A class="btn btn-ghost text-xl" href="/">
+        <div className="flex-1">
+          <Link className="btn btn-ghost text-xl" to="/">
             My Life Logger
-          </A>
+          </Link>
         </div>
 
-        <div class="flex-none">
+        <div className="flex-none">
           <ThemeSwitcher />
         </div>
       </div>
 
-      <main class="overflow-auto" style={{ height: 'calc(100vh - 4rem)' }}>
-        {props.children}
+      <main className="overflow-auto" style={{ height: 'calc(100vh - 4rem)' }}>
+        {children}
       </main>
     </div>
 
-    <div class="drawer-side">
-      <label for="app-drawer" class="drawer-overlay" aria-label="Close menu" />
-      <aside class="min-h-full w-72 bg-base-200">
-        <div class="p-4 text-lg font-semibold">Menu</div>
-        <ul class="menu px-4 pb-6 w-full">
+    <div className="drawer-side">
+      <label htmlFor="app-drawer" className="drawer-overlay" aria-label="Close menu" />
+      <aside className="min-h-full w-72 bg-base-200">
+        <div className="p-4 text-lg font-semibold">Menu</div>
+        <ul className="menu px-4 pb-6 w-full">
           <li>
-            <A href="/">Home</A>
+            <Link to="/">Home</Link>
           </li>
         </ul>
       </aside>

@@ -23,7 +23,7 @@ Run a single test: `cargo test -p <crate-name> <test_name>`
 
 ## Architecture
 
-Desktop app (Rust + Tauri + SolidJS) for activity time-tracking. Users log daily activities with categories, durations, and timestamps.
+Desktop app (Rust + Tauri + React) for activity time-tracking. Users log daily activities with categories, durations, and timestamps.
 
 ### Workspace Crates
 
@@ -34,7 +34,7 @@ Desktop app (Rust + Tauri + SolidJS) for activity time-tracking. Users log daily
 | `infrastructure` | `backend/infrastructure` | SeaORM repositories, ORM entities, mappers |
 | `migration` | `backend/migration` | SeaORM migration files |
 | Tauri app | `frontend/src-tauri` | IPC commands, app state wiring, event emission |
-| SolidJS UI | `frontend/src` | Reactive UI (Tailwind CSS + DaisyUI) |
+| React UI | `frontend/src` | Reactive UI (Tailwind CSS + DaisyUI) |
 
 ### Layer Dependencies
 
