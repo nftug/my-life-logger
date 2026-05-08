@@ -1,12 +1,12 @@
 import { greet } from '@/generated/commands'
-import { useState } from 'react'
+import { SubmitEvent, useState } from 'react'
 
 const IndexPage = () => {
   const [name, setName] = useState('')
   const [greetMsg, setGreetMsg] = useState('')
   const [isError, setIsError] = useState(false)
 
-  const handleGreet = async (event: React.FormEvent) => {
+  const handleGreet = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
     try {
       const message = await greet({ name })

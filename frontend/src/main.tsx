@@ -1,5 +1,5 @@
-import IndexPage from '@/pages/IndexPage'
 import { Dialog } from '@/lib/ui/components/Dialog'
+import IndexPage from '@/pages/IndexPage'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
@@ -9,9 +9,11 @@ import './app.css'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App><IndexPage /></App>} />
-      </Routes>
+      <App>
+        <Routes>
+          <Route path="/" element={<IndexPage />} />
+        </Routes>
+      </App>
     </BrowserRouter>
     <Dialog.Root />
   </StrictMode>,
