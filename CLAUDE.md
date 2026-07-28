@@ -39,7 +39,7 @@ Desktop app (Rust + Tauri + React) for activity time-tracking. Users log daily a
 ### Layer Dependencies
 
 ```
-Frontend (SolidJS) ←→ Tauri IPC ←→ Application Services → Domain ← Infrastructure
+Frontend (React) ←→ Tauri IPC ←→ Application Services → Domain ← Infrastructure
 ```
 
 The Tauri layer (`frontend/src-tauri/src/`) acts as a DI container — it owns `AppState`, which holds all repository impls and application services as `Arc<dyn Trait>`.
