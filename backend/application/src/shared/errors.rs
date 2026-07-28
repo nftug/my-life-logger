@@ -3,11 +3,13 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ApplicationError {
-    #[error("{0}")]
+    #[error("Domain error: {0}")]
     DomainError(DomainError),
-    #[error("対象データが見つかりません")]
+    #[error("Not found")]
     NotFound,
-    #[error("内部エラー: {0}")]
+    #[error("カテゴリ名は既に存在します")]
+    CategoryNameAlreadyExists,
+    #[error("{0}")]
     InternalError(String),
 }
 
@@ -15,6 +17,8 @@ impl From<DomainError> for ApplicationError {
     fn from(err: DomainError) -> Self {
         match err {
             DomainError::ActivityNotFound => ApplicationError::NotFound,
+            DomainError::CategoryNameAlreadyExists => ApplicationError::CategoryNameAlreadyExists,
+            DomainError::Persistence(err) => err.into(),
             other => ApplicationError::DomainError(other),
         }
     }

@@ -1,4 +1,4 @@
-use crate::{define_id, shared::EntityIdTrait};
+use crate::{define_id, shared::EntityIdTrait, values::CategoryColor};
 
 define_id!(CategoryId);
 
@@ -6,6 +6,7 @@ define_id!(CategoryId);
 pub struct Category {
     id: CategoryId,
     name: String,
+    color: CategoryColor,
 }
 
 impl Category {
@@ -15,20 +16,25 @@ impl Category {
     pub fn name(&self) -> &str {
         &self.name
     }
-
-    pub fn hydrate(id: CategoryId, name: String) -> Self {
-        Self { id, name }
+    pub fn color(&self) -> &CategoryColor {
+        &self.color
     }
 
-    pub fn new(name: String) -> Self {
+    pub fn hydrate(id: CategoryId, name: String, color: CategoryColor) -> Self {
+        Self { id, name, color }
+    }
+
+    pub fn new(name: String, color: CategoryColor) -> Self {
         Self {
             id: CategoryId::new_v4(),
-            name,
+            name: name.trim().to_owned(),
+            color,
         }
     }
 
-    pub fn rename(&mut self, new_name: String) {
-        self.name = new_name;
+    pub fn rename(&mut self, new_name: String, color: CategoryColor) {
+        self.name = new_name.trim().to_owned();
+        self.color = color;
     }
 }
 

@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::interface::CategoryRepository;
+use domain::{
+    interface::CategoryRepository, service::CategoryNameValidationService, values::CategoryColor,
+};
 
 use crate::{
     category::{RenameCategoryIdentityDto, RenameCategoryRequestDto},
@@ -11,6 +13,7 @@ use crate::{
 #[derive(new)]
 pub struct RenameCategoryService {
     repository: Arc<dyn CategoryRepository>,
+    category_name_validation: Arc<CategoryNameValidationService>,
 }
 
 impl RenameCategoryService {
@@ -19,13 +22,17 @@ impl RenameCategoryService {
         identity: RenameCategoryIdentityDto,
         request: RenameCategoryRequestDto,
     ) -> Result<(), ApplicationError> {
+        let color = CategoryColor::new(request.color)?;
         let mut category = self
             .repository
             .find_by_id(identity.category_id)
             .await?
             .ok_or(ApplicationError::NotFound)?;
 
-        category.rename(request.name);
+        category.rename(request.name, color);
+        self.category_name_validation
+            .ensure_unique(&category)
+            .await?;
 
         self.repository.save(&category).await?;
 

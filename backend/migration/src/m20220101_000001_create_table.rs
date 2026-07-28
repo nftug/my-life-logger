@@ -13,7 +13,15 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(uuid("id").primary_key())
                     .col(string("name"))
+                    .col(string("color").not_null().default("#8B5CF6"))
                     .to_owned(),
+            )
+            .await?;
+
+        manager
+            .get_connection()
+            .execute_unprepared(
+                "CREATE UNIQUE INDEX idx_categories_name_nocase ON categories(name COLLATE NOCASE)",
             )
             .await?;
 

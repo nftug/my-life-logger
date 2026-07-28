@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use derive_new::new;
-use domain::{entity::Category, interface::CategoryRepository};
+use domain::{
+    entity::Category, interface::CategoryRepository, service::CategoryNameValidationService,
+    values::CategoryColor,
+};
 
 use crate::{
     category::CreateCategoryRequestDto, shared::ApplicationError, shared::EntityCreationDTO,
@@ -10,6 +13,7 @@ use crate::{
 #[derive(new)]
 pub struct CreateCategoryService {
     repository: Arc<dyn CategoryRepository>,
+    category_name_validation: Arc<CategoryNameValidationService>,
 }
 
 impl CreateCategoryService {
@@ -17,7 +21,11 @@ impl CreateCategoryService {
         &self,
         request: CreateCategoryRequestDto,
     ) -> Result<EntityCreationDTO, ApplicationError> {
-        let category = Category::new(request.name);
+        let color = CategoryColor::new(request.color)?;
+        let category = Category::new(request.name, color);
+        self.category_name_validation
+            .ensure_unique(&category)
+            .await?;
 
         self.repository.save(&category).await?;
 

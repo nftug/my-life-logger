@@ -2,7 +2,7 @@ import js from '@eslint/js'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import prettier from 'eslint-config-prettier'
-import solid from 'eslint-plugin-solid/configs/typescript'
+import reactHooks from 'eslint-plugin-react-hooks'
 import globals from 'globals'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -24,7 +24,6 @@ export default [
   },
   {
     files: ['src/**/*.{ts,tsx}'],
-    ...solid,
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -37,16 +36,16 @@ export default [
       globals: { ...globals.browser, ...globals.es2022 },
     },
     plugins: {
-      ...solid.plugins,
       '@typescript-eslint': tsPlugin,
+      'react-hooks': reactHooks,
     },
     rules: {
-      ...solid.rules,
       ...tsPlugin.configs.recommended.rules,
+      ...reactHooks.configs.recommended.rules,
     },
   },
   {
-    ignores: ['build/', 'dist/', 'node_modules/', 'src-tauri/target/**', 'src/generated/**'],
+    ignores: ['build/', 'dist/', 'node_modules/', 'src/generated/', 'src-tauri/target/**'],
   },
   prettier,
 ]

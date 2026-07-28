@@ -18,6 +18,12 @@ pub enum DomainError {
     ActivityNotFound,
     #[error("カテゴリが見つかりません")]
     CategoryNotFound,
+    #[error("Category name already exists")]
+    CategoryNameAlreadyExists,
+    #[error("Category color must be in #RRGGBB format")]
+    InvalidCategoryColor,
+    #[error(transparent)]
+    Persistence(#[from] PersistenceError),
     #[error("{0}")]
     GenericError(String),
 }

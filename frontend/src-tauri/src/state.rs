@@ -14,6 +14,7 @@ use application::{
 use domain::{
     audit::clock::SystemClock,
     interface::{ActivityStateRepository, CategoryRepository},
+    service::CategoryNameValidationService,
 };
 use infrastructure::{
     activity::ActivityStateRepositoryImpl,
@@ -59,6 +60,9 @@ impl AppState {
             Arc::new(ActivityStateRepositoryImpl::new(pool.clone()));
         let category_repository: Arc<dyn CategoryRepository> =
             Arc::new(CategoryRepositoryImpl::new(pool));
+        let category_name_validation = Arc::new(CategoryNameValidationService::new(
+            category_repository.clone(),
+        ));
 
         let clock = Arc::new(SystemClock);
         let activity_state_publisher =
@@ -104,8 +108,14 @@ impl AppState {
         };
 
         let category = CategoryServices {
-            create_category: CreateCategoryService::new(category_repository.clone()),
-            rename_category: RenameCategoryService::new(category_repository.clone()),
+            create_category: CreateCategoryService::new(
+                category_repository.clone(),
+                category_name_validation.clone(),
+            ),
+            rename_category: RenameCategoryService::new(
+                category_repository.clone(),
+                category_name_validation,
+            ),
             delete_category: DeleteCategoryService::new(category_repository.clone()),
             get_all_categories: GetAllCategoriesService::new(category_repository),
         };

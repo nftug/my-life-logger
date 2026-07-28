@@ -9,6 +9,7 @@ use serde::Serialize;
 pub struct CategoryResponseDto {
     pub id: CategoryId,
     pub name: String,
+    pub color: String,
 }
 
 impl From<&Category> for CategoryResponseDto {
@@ -16,6 +17,7 @@ impl From<&Category> for CategoryResponseDto {
         CategoryResponseDto {
             id: category.id(),
             name: category.name().to_string(),
+            color: category.color().to_string(),
         }
     }
 }
@@ -25,6 +27,7 @@ impl From<&CategoryReference> for CategoryResponseDto {
         CategoryResponseDto {
             id: category_reference.category_id(),
             name: category_reference.name().to_string(),
+            color: category_reference.color().to_string(),
         }
     }
 }
