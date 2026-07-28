@@ -1,8 +1,8 @@
 import ActiveActivityCard from '@/features/activity/components/ActiveActivityCard'
 import ActivityTimeline from '@/features/activity/components/ActivityTimeline'
-import CompletedActivityDialog from '@/features/activity/components/CompletedActivityDialog'
+import CompletedActivityDialogCall from '@/features/activity/components/CompletedActivityDialogCall'
 import DailySummary from '@/features/activity/components/DailySummary'
-import EditActiveActivityDialog from '@/features/activity/components/EditActiveActivityDialog'
+import EditActiveActivityDialogCall from '@/features/activity/components/EditActiveActivityDialogCall'
 import StartActivityForm from '@/features/activity/components/StartActivityForm'
 import { useActivityDashboard } from '@/features/activity/hooks/useActivityDashboard'
 import type { ActivityResponseDto } from '@/generated/types'
@@ -26,19 +26,35 @@ const homeTabs = [
 
 const IndexPage = () => {
   const { state, actions } = useActivityDashboard()
-  const [selectedActivity, setSelectedActivity] = useState<ActivityResponseDto | null>(null)
-  const [isCompletedDialogOpen, setIsCompletedDialogOpen] = useState(false)
-  const [isActiveEditorOpen, setIsActiveEditorOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<HomeTab>('current')
 
-  const openAddDialog = () => {
-    setSelectedActivity(null)
-    setIsCompletedDialogOpen(true)
-  }
+  const openAddDialog = () =>
+    CompletedActivityDialogCall.call({
+      activity: null,
+      categories: state.categories,
+      date: state.activityState.date,
+      createForm: actions.completedFormFor,
+      onSave: actions.saveCompleted,
+    })
 
-  const openEditDialog = (activity: ActivityResponseDto) => {
-    setSelectedActivity(activity)
-    setIsCompletedDialogOpen(true)
+  const openEditDialog = (activity: ActivityResponseDto) =>
+    CompletedActivityDialogCall.call({
+      activity,
+      categories: state.categories,
+      date: state.activityState.date,
+      createForm: actions.completedFormFor,
+      onSave: actions.saveCompleted,
+    })
+
+  const openActiveEditor = () => {
+    const activity = state.activityState.activeActivity
+    if (!activity) return
+    void EditActiveActivityDialogCall.call({
+      activity,
+      categories: state.categories,
+      createForm: actions.activeFormFor,
+      onSave: actions.saveActive,
+    })
   }
 
   const confirmStop = async () => {
@@ -113,6 +129,7 @@ const IndexPage = () => {
         <EmptyState
           title="まずはカテゴリを作りましょう"
           description="活動を記録するにはカテゴリが必要です。たとえば「開発」「勉強」「休憩」などから始めるのがおすすめです。"
+          className="flex min-h-0 flex-1 flex-col items-center justify-center"
           action={
             <Link to="/categories" className="btn btn-primary">
               カテゴリを管理する
@@ -121,7 +138,7 @@ const IndexPage = () => {
         />
       ) : (
         <>
-          <section className="flex flex-col gap-4" aria-label="今日の記録の詳細">
+          <section className="flex min-h-0 flex-1 flex-col gap-4" aria-label="今日の記録の詳細">
             <div className="flex items-center justify-between gap-3">
               <SegmentedTabs
                 ariaLabel="今日の記録の表示を切り替え"
@@ -132,7 +149,7 @@ const IndexPage = () => {
               <button
                 type="button"
                 className="btn btn-outline btn-sm shrink-0"
-                onClick={openAddDialog}
+                onClick={() => void openAddDialog()}
                 disabled={isPending}
               >
                 <PlusIcon className="h-4 w-4" />
@@ -140,7 +157,7 @@ const IndexPage = () => {
                 <span className="sm:hidden">追加</span>
               </button>
             </div>
-            <div className="h-112 sm:h-120" role="tabpanel">
+            <div className="min-h-0 flex-1" role="tabpanel">
               {activeTab === 'current' ? (
                 <div className="h-full overflow-y-auto pr-1">
                   {state.activityState.activeActivity ? (
@@ -153,7 +170,7 @@ const IndexPage = () => {
                       isSubmitting={isPending}
                       onStop={confirmStop}
                       onCancel={confirmCancel}
-                      onEditorOpen={() => setIsActiveEditorOpen(true)}
+                      onEditorOpen={openActiveEditor}
                     />
                   ) : (
                     <StartActivityForm
@@ -167,8 +184,8 @@ const IndexPage = () => {
                 <ActivityTimeline
                   activities={state.allActivities}
                   activeDurationSeconds={state.activeDurationSeconds}
-                  onEdit={openEditDialog}
-                  onEditActive={() => setIsActiveEditorOpen(true)}
+                  onEdit={(activity) => void openEditDialog(activity)}
+                  onEditActive={openActiveEditor}
                   onCancelActive={() => void confirmCancel()}
                   onDelete={(activity) => void confirmDelete(activity)}
                 />
@@ -184,27 +201,8 @@ const IndexPage = () => {
         </>
       )}
 
-      <CompletedActivityDialog
-        activity={selectedActivity}
-        categories={state.categories}
-        open={isCompletedDialogOpen}
-        isSubmitting={state.pendingAction === 'save-completed'}
-        date={state.activityState.date}
-        createForm={actions.completedFormFor}
-        onClose={() => setIsCompletedDialogOpen(false)}
-        onSave={actions.saveCompleted}
-      />
-      {state.activityState.activeActivity ? (
-        <EditActiveActivityDialog
-          activity={state.activityState.activeActivity}
-          categories={state.categories}
-          open={isActiveEditorOpen}
-          isSubmitting={state.pendingAction === 'save-active'}
-          createForm={actions.activeFormFor}
-          onClose={() => setIsActiveEditorOpen(false)}
-          onSave={actions.saveActive}
-        />
-      ) : null}
+      <CompletedActivityDialogCall.Root />
+      <EditActiveActivityDialogCall.Root />
     </div>
   )
 }

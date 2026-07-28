@@ -10,10 +10,10 @@ const navigation = [
 ]
 
 const App = ({ children }: { children: ReactNode }) => (
-  <div className="drawer lg:drawer-open">
+  <div className="drawer h-dvh lg:drawer-open">
     <input id="app-drawer" type="checkbox" className="drawer-toggle" />
-    <div className="drawer-content min-h-screen bg-base-200/45">
-      <div className="navbar sticky top-0 z-30 border-b border-base-200 bg-base-100/90 px-4 backdrop-blur lg:hidden">
+    <div className="drawer-content flex h-dvh min-h-0 flex-col bg-base-200/45">
+      <div className="navbar sticky top-0 z-30 shrink-0 border-b border-base-200 bg-base-100/90 px-4 backdrop-blur lg:hidden">
         <label
           htmlFor="app-drawer"
           className="btn btn-square btn-ghost"
@@ -24,7 +24,7 @@ const App = ({ children }: { children: ReactNode }) => (
         <span className="ml-2 flex-1 text-lg font-semibold">My Life Logger</span>
         <ThemeSwitcher />
       </div>
-      <main className="min-h-screen overflow-auto">{children}</main>
+      <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
     </div>
 
     <div className="drawer-side z-40">

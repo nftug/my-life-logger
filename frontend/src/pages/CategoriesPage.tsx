@@ -1,6 +1,7 @@
-import type { CategoryResponseDto } from '@/generated/types'
+import CategoryEditorDialogCall from '@/features/category/components/CategoryEditorDialogCall'
 import CategoryManager from '@/features/category/components/CategoryManager'
 import { useCategories } from '@/features/category/hooks/useCategories'
+import type { CategoryResponseDto } from '@/generated/types'
 import { showDialog } from '@/lib/ui/components/Dialog'
 import { ErrorAlert, LoadingState } from '@/lib/ui/components/Feedback'
 import PageHeader from '@/lib/ui/components/PageHeader'
@@ -44,6 +45,7 @@ const CategoriesPage = () => {
         onRename={actions.rename}
         onDelete={(category) => void confirmDelete(category)}
       />
+      <CategoryEditorDialogCall.Root />
     </div>
   )
 }

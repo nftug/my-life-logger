@@ -1,5 +1,5 @@
 import ActivityTimeline from '@/features/activity/components/ActivityTimeline'
-import CompletedActivityDialog from '@/features/activity/components/CompletedActivityDialog'
+import CompletedActivityDialogCall from '@/features/activity/components/CompletedActivityDialogCall'
 import DailySummary from '@/features/activity/components/DailySummary'
 import { useActivityDashboard } from '@/features/activity/hooks/useActivityDashboard'
 import type { ActivityResponseDto } from '@/generated/types'
@@ -21,26 +21,35 @@ const historyTabs = [
 
 const HistoryPage = () => {
   const [selectedDate, setSelectedDate] = useState(yesterdayDate)
-  const [selectedActivity, setSelectedActivity] = useState<ActivityResponseDto | null>(null)
-  const [isCompletedDialogOpen, setIsCompletedDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<HistoryTab>('timeline')
   const { state, actions } = useActivityDashboard(selectedDate)
   const { completedFormFor } = actions
+  const dateLabel = formatDate(selectedDate)
 
   const completedFormForSelectedDate = useCallback(
     (activity?: ActivityResponseDto) => completedFormFor(activity, selectedDate),
     [completedFormFor, selectedDate],
   )
 
-  const openAddDialog = () => {
-    setSelectedActivity(null)
-    setIsCompletedDialogOpen(true)
-  }
+  const openAddDialog = () =>
+    CompletedActivityDialogCall.call({
+      activity: null,
+      categories: state.categories,
+      date: selectedDate,
+      dateLabel,
+      createForm: completedFormForSelectedDate,
+      onSave: actions.saveCompleted,
+    })
 
-  const openEditDialog = (activity: ActivityResponseDto) => {
-    setSelectedActivity(activity)
-    setIsCompletedDialogOpen(true)
-  }
+  const openEditDialog = (activity: ActivityResponseDto) =>
+    CompletedActivityDialogCall.call({
+      activity,
+      categories: state.categories,
+      date: selectedDate,
+      dateLabel,
+      createForm: completedFormForSelectedDate,
+      onSave: actions.saveCompleted,
+    })
 
   const confirmDelete = async (activity: ActivityResponseDto) => {
     const result = await showDialog<'delete'>({
@@ -57,7 +66,6 @@ const HistoryPage = () => {
   if (state.isLoading) return <LoadingState />
 
   const isPending = state.pendingAction !== null
-  const dateLabel = formatDate(selectedDate)
   return (
     <div className="page-content">
       <PageHeader
@@ -84,7 +92,7 @@ const HistoryPage = () => {
         </div>
       ) : null}
 
-      <section className="flex flex-col gap-4" aria-label="過去の記録の詳細">
+      <section className="flex min-h-0 flex-1 flex-col gap-4" aria-label="過去の記録の詳細">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <SegmentedTabs
             ariaLabel="過去の記録の表示を切り替え"
@@ -108,7 +116,7 @@ const HistoryPage = () => {
             <button
               type="button"
               className="btn btn-outline w-full shrink-0 sm:w-auto"
-              onClick={openAddDialog}
+              onClick={() => void openAddDialog()}
               disabled={isPending || state.categories.length === 0}
             >
               <PlusIcon className="h-4 w-4" />
@@ -116,14 +124,14 @@ const HistoryPage = () => {
             </button>
           </div>
         </div>
-        <div className="h-112 sm:h-120" role="tabpanel">
+        <div className="min-h-0 flex-1" role="tabpanel">
           {activeTab === 'timeline' ? (
             state.allActivities.length > 0 ? (
               <ActivityTimeline
                 activities={state.allActivities}
                 activeDurationSeconds={state.activeDurationSeconds}
                 title={`${dateLabel}のタイムライン`}
-                onEdit={openEditDialog}
+                onEdit={(activity) => void openEditDialog(activity)}
                 onEditActive={() => undefined}
                 onCancelActive={() => undefined}
                 onDelete={(activity) => void confirmDelete(activity)}
@@ -132,6 +140,7 @@ const HistoryPage = () => {
               <EmptyState
                 title="この日の記録はありません"
                 description="別の日付を選ぶと、その日の記録を確認・編集できます。"
+                className="flex h-full min-h-0 flex-col items-center justify-center"
               />
             )
           ) : (
@@ -145,17 +154,7 @@ const HistoryPage = () => {
         </div>
       </section>
 
-      <CompletedActivityDialog
-        activity={selectedActivity}
-        categories={state.categories}
-        open={isCompletedDialogOpen}
-        isSubmitting={isPending}
-        date={selectedDate}
-        dateLabel={dateLabel}
-        createForm={completedFormForSelectedDate}
-        onClose={() => setIsCompletedDialogOpen(false)}
-        onSave={actions.saveCompleted}
-      />
+      <CompletedActivityDialogCall.Root />
     </div>
   )
 }

@@ -11,7 +11,7 @@ import { valibotResolver } from '@hookform/resolvers/valibot'
 import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 
-interface CompletedActivityDialogProps {
+export interface CompletedActivityDialogProps {
   activity: ActivityResponseDto | null
   categories: CategoryResponseDto[]
   open: boolean
