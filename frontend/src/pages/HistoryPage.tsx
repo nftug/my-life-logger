@@ -1,5 +1,5 @@
 import ActivityTimeline from '@/features/activity/components/ActivityTimeline'
-import CompletedActivityDialog from '@/features/activity/components/CompletedActivityDialog'
+import CompletedActivityDialogCall from '@/features/activity/components/CompletedActivityDialogCall'
 import DailySummary from '@/features/activity/components/DailySummary'
 import { useActivityDashboard } from '@/features/activity/hooks/useActivityDashboard'
 import type { ActivityResponseDto } from '@/generated/types'
@@ -21,26 +21,35 @@ const historyTabs = [
 
 const HistoryPage = () => {
   const [selectedDate, setSelectedDate] = useState(yesterdayDate)
-  const [selectedActivity, setSelectedActivity] = useState<ActivityResponseDto | null>(null)
-  const [isCompletedDialogOpen, setIsCompletedDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<HistoryTab>('timeline')
   const { state, actions } = useActivityDashboard(selectedDate)
   const { completedFormFor } = actions
+  const dateLabel = formatDate(selectedDate)
 
   const completedFormForSelectedDate = useCallback(
     (activity?: ActivityResponseDto) => completedFormFor(activity, selectedDate),
     [completedFormFor, selectedDate],
   )
 
-  const openAddDialog = () => {
-    setSelectedActivity(null)
-    setIsCompletedDialogOpen(true)
-  }
+  const openAddDialog = () =>
+    CompletedActivityDialogCall.call({
+      activity: null,
+      categories: state.categories,
+      date: selectedDate,
+      dateLabel,
+      createForm: completedFormForSelectedDate,
+      onSave: actions.saveCompleted,
+    })
 
-  const openEditDialog = (activity: ActivityResponseDto) => {
-    setSelectedActivity(activity)
-    setIsCompletedDialogOpen(true)
-  }
+  const openEditDialog = (activity: ActivityResponseDto) =>
+    CompletedActivityDialogCall.call({
+      activity,
+      categories: state.categories,
+      date: selectedDate,
+      dateLabel,
+      createForm: completedFormForSelectedDate,
+      onSave: actions.saveCompleted,
+    })
 
   const confirmDelete = async (activity: ActivityResponseDto) => {
     const result = await showDialog<'delete'>({
@@ -57,7 +66,6 @@ const HistoryPage = () => {
   if (state.isLoading) return <LoadingState />
 
   const isPending = state.pendingAction !== null
-  const dateLabel = formatDate(selectedDate)
   return (
     <div className="page-content">
       <PageHeader
@@ -108,7 +116,7 @@ const HistoryPage = () => {
             <button
               type="button"
               className="btn btn-outline w-full shrink-0 sm:w-auto"
-              onClick={openAddDialog}
+              onClick={() => void openAddDialog()}
               disabled={isPending || state.categories.length === 0}
             >
               <PlusIcon className="h-4 w-4" />
@@ -123,7 +131,7 @@ const HistoryPage = () => {
                 activities={state.allActivities}
                 activeDurationSeconds={state.activeDurationSeconds}
                 title={`${dateLabel}のタイムライン`}
-                onEdit={openEditDialog}
+                onEdit={(activity) => void openEditDialog(activity)}
                 onEditActive={() => undefined}
                 onCancelActive={() => undefined}
                 onDelete={(activity) => void confirmDelete(activity)}
@@ -145,17 +153,7 @@ const HistoryPage = () => {
         </div>
       </section>
 
-      <CompletedActivityDialog
-        activity={selectedActivity}
-        categories={state.categories}
-        open={isCompletedDialogOpen}
-        isSubmitting={isPending}
-        date={selectedDate}
-        dateLabel={dateLabel}
-        createForm={completedFormForSelectedDate}
-        onClose={() => setIsCompletedDialogOpen(false)}
-        onSave={actions.saveCompleted}
-      />
+      <CompletedActivityDialogCall.Root />
     </div>
   )
 }

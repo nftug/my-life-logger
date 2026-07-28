@@ -10,7 +10,7 @@ import { valibotResolver } from '@hookform/resolvers/valibot'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
-interface CategoryEditorDialogProps {
+export interface CategoryEditorDialogProps {
   category: CategoryResponseDto | null
   open: boolean
   isSubmitting: boolean

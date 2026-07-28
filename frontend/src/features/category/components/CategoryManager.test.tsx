@@ -1,6 +1,7 @@
 import type { CategoryResponseDto } from '@/generated/types'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import CategoryEditorDialogCall from './CategoryEditorDialogCall'
 import CategoryManager from './CategoryManager'
 
 const category: CategoryResponseDto = {
@@ -15,13 +16,16 @@ const renderManager = ({
   onRename = vi.fn().mockResolvedValue(true),
 } = {}) => {
   render(
-    <CategoryManager
-      categories={categories}
-      pendingAction={null}
-      onCreate={onCreate}
-      onRename={onRename}
-      onDelete={vi.fn()}
-    />,
+    <>
+      <CategoryManager
+        categories={categories}
+        pendingAction={null}
+        onCreate={onCreate}
+        onRename={onRename}
+        onDelete={vi.fn()}
+      />
+      <CategoryEditorDialogCall.Root />
+    </>,
   )
 
   return { onCreate, onRename }
