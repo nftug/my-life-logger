@@ -1,10 +1,15 @@
-import type { ActivityResponseDto, CategoryResponseDto } from '@/generated/types'
-import type { CompletedActivityFormValues } from '@/features/activity/hooks/useActivityDashboard'
+import {
+  completedActivitySchema,
+  type CompletedActivityFormValues,
+} from '@/features/activity/activityFormSchema'
 import CategorySelect from '@/features/activity/components/CategorySelect'
+import type { ActivityResponseDto, CategoryResponseDto } from '@/generated/types'
 import AsyncButton from '@/lib/ui/components/AsyncButton'
 import FormField from '@/lib/ui/components/FormField'
 import Modal from '@/lib/ui/components/Modal'
-import { useEffect, useState } from 'react'
+import { valibotResolver } from '@hookform/resolvers/valibot'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
 
 interface CompletedActivityDialogProps {
   activity: ActivityResponseDto | null
@@ -25,13 +30,21 @@ const CompletedActivityDialog = ({
   onClose,
   onSave,
 }: CompletedActivityDialogProps) => {
-  const [form, setForm] = useState(() => createForm(activity ?? undefined))
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CompletedActivityFormValues>({
+    resolver: valibotResolver(completedActivitySchema),
+    defaultValues: createForm(activity ?? undefined),
+  })
 
   useEffect(() => {
-    if (open) setForm(createForm(activity ?? undefined))
-  }, [activity, createForm, open])
+    if (open) reset(createForm(activity ?? undefined))
+  }, [activity, createForm, open, reset])
 
-  const save = async () => {
+  const save = async (form: CompletedActivityFormValues) => {
     if (await onSave(activity?.id ?? null, form)) onClose()
   }
 
@@ -47,43 +60,37 @@ const CompletedActivityDialog = ({
           <div className="sm:col-span-2">
             <CategorySelect
               categories={categories}
-              value={form.categoryId}
-              onChange={(categoryId) => setForm((current) => ({ ...current, categoryId }))}
+              registration={register('categoryId')}
+              error={errors.categoryId?.message}
             />
           </div>
           <FormField label="開始時刻">
             <input
               type="datetime-local"
               className="input input-bordered w-full"
-              value={form.startedAtLocal}
-              onChange={(event) => {
-                const startedAtLocal = event.currentTarget.value
-                setForm((current) => ({ ...current, startedAtLocal }))
-              }}
+              {...register('startedAtLocal')}
             />
+            {errors.startedAtLocal?.message ? (
+              <span className="text-sm text-error">{errors.startedAtLocal.message}</span>
+            ) : null}
           </FormField>
           <FormField label="終了時刻">
             <input
               type="datetime-local"
               className="input input-bordered w-full"
-              value={form.endedAtLocal}
-              onChange={(event) => {
-                const endedAtLocal = event.currentTarget.value
-                setForm((current) => ({ ...current, endedAtLocal }))
-              }}
+              {...register('endedAtLocal')}
             />
+            {errors.endedAtLocal?.message ? (
+              <span className="text-sm text-error">{errors.endedAtLocal.message}</span>
+            ) : null}
           </FormField>
           <div className="sm:col-span-2">
-            <FormField label="メモ" hint="任意">
+            <FormField label="メモ" hint="任意" error={errors.description?.message}>
               <textarea
                 className="textarea textarea-bordered min-h-28 w-full resize-y"
-                value={form.description}
                 maxLength={200}
                 placeholder="例：設計の見直し"
-                onChange={(event) => {
-                  const description = event.currentTarget.value
-                  setForm((current) => ({ ...current, description }))
-                }}
+                {...register('description')}
               />
             </FormField>
           </div>
@@ -97,7 +104,7 @@ const CompletedActivityDialog = ({
           type="button"
           className="btn-primary"
           loading={isSubmitting}
-          onClick={() => void save()}
+          onClick={() => void handleSubmit(save)()}
         >
           保存
         </AsyncButton>

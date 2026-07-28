@@ -19,12 +19,15 @@
   "license": "MIT",
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@hookform/resolvers": "^5.5.7",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "react": "^19.0.0",
     "react-call": "^1.8.2",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.0.0"
+    "react-hook-form": "^7.83.0",
+    "react-router-dom": "^7.0.0",
+    "valibot": "^1.4.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

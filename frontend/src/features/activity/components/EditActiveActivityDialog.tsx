@@ -1,10 +1,15 @@
 import type { ActivityResponseDto, CategoryResponseDto } from '@/generated/types'
-import type { ActiveActivityFormValues } from '@/features/activity/hooks/useActivityDashboard'
+import {
+  activeActivitySchema,
+  type ActiveActivityFormValues,
+} from '@/features/activity/activityFormSchema'
 import CategorySelect from '@/features/activity/components/CategorySelect'
 import AsyncButton from '@/lib/ui/components/AsyncButton'
 import FormField from '@/lib/ui/components/FormField'
 import Modal from '@/lib/ui/components/Modal'
-import { useEffect, useState } from 'react'
+import { valibotResolver } from '@hookform/resolvers/valibot'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
 
 interface EditActiveActivityDialogProps {
   activity: ActivityResponseDto
@@ -25,13 +30,21 @@ const EditActiveActivityDialog = ({
   onClose,
   onSave,
 }: EditActiveActivityDialogProps) => {
-  const [form, setForm] = useState(() => createForm(activity))
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ActiveActivityFormValues>({
+    resolver: valibotResolver(activeActivitySchema),
+    defaultValues: createForm(activity),
+  })
 
   useEffect(() => {
-    if (open) setForm(createForm(activity))
-  }, [activity, createForm, open])
+    if (open) reset(createForm(activity))
+  }, [activity, createForm, open, reset])
 
-  const save = async () => {
+  const save = async (form: ActiveActivityFormValues) => {
     if (await onSave(form)) onClose()
   }
 
@@ -45,29 +58,24 @@ const EditActiveActivityDialog = ({
         <div className="grid gap-4">
           <CategorySelect
             categories={categories}
-            value={form.categoryId}
-            onChange={(categoryId) => setForm((current) => ({ ...current, categoryId }))}
+            registration={register('categoryId')}
+            error={errors.categoryId?.message}
           />
           <FormField label="開始時刻">
             <input
               type="datetime-local"
               className="input input-bordered w-full"
-              value={form.startedAtLocal}
-              onChange={(event) => {
-                const startedAtLocal = event.currentTarget.value
-                setForm((current) => ({ ...current, startedAtLocal }))
-              }}
+              {...register('startedAtLocal')}
             />
+            {errors.startedAtLocal?.message ? (
+              <span className="text-sm text-error">{errors.startedAtLocal.message}</span>
+            ) : null}
           </FormField>
-          <FormField label="メモ" hint="任意">
+          <FormField label="メモ" hint="任意" error={errors.description?.message}>
             <textarea
               className="textarea textarea-bordered min-h-28 w-full resize-y"
-              value={form.description}
               maxLength={200}
-              onChange={(event) => {
-                const description = event.currentTarget.value
-                setForm((current) => ({ ...current, description }))
-              }}
+              {...register('description')}
             />
           </FormField>
         </div>
@@ -80,7 +88,7 @@ const EditActiveActivityDialog = ({
           type="button"
           className="btn-primary"
           loading={isSubmitting}
-          onClick={() => void save()}
+          onClick={() => void handleSubmit(save)()}
         >
           保存
         </AsyncButton>

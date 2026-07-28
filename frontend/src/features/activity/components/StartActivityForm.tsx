@@ -1,29 +1,39 @@
 import type { CategoryResponseDto } from '@/generated/types'
-import type { ActivityFormValues } from '@/features/activity/hooks/useActivityDashboard'
+import {
+  startActivitySchema,
+  type ActivityFormValues,
+} from '@/features/activity/activityFormSchema'
 import CategorySelect from '@/features/activity/components/CategorySelect'
 import AsyncButton from '@/lib/ui/components/AsyncButton'
 import FormField from '@/lib/ui/components/FormField'
+import { valibotResolver } from '@hookform/resolvers/valibot'
 import { PlayIcon } from '@heroicons/react/24/solid'
-import type { FormEvent } from 'react'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
 
 interface StartActivityFormProps {
   categories: CategoryResponseDto[]
-  value: ActivityFormValues
   isSubmitting: boolean
-  onChange: (value: ActivityFormValues) => void
-  onSubmit: () => Promise<boolean>
+  onSubmit: (form: ActivityFormValues) => Promise<boolean>
 }
 
-const StartActivityForm = ({
-  categories,
-  value,
-  isSubmitting,
-  onChange,
-  onSubmit,
-}: StartActivityFormProps) => {
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    void onSubmit()
+const StartActivityForm = ({ categories, isSubmitting, onSubmit }: StartActivityFormProps) => {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ActivityFormValues>({
+    resolver: valibotResolver(startActivitySchema),
+    defaultValues: { categoryId: categories[0]?.id ?? '', description: '' },
+  })
+
+  useEffect(() => {
+    reset({ categoryId: categories[0]?.id ?? '', description: '' })
+  }, [categories, reset])
+
+  const submit = async (form: ActivityFormValues) => {
+    if (await onSubmit(form)) reset({ categoryId: categories[0]?.id ?? '', description: '' })
   }
 
   return (
@@ -34,17 +44,16 @@ const StartActivityForm = ({
           <h2 className="card-title mt-1">次の活動をはじめましょう</h2>
           <p className="text-sm text-base-content/65">開始時刻は自動で記録されます。</p>
         </div>
-        <form className="flex max-w-2xl flex-col gap-4" onSubmit={handleSubmit}>
+        <form className="flex max-w-2xl flex-col gap-4" onSubmit={handleSubmit(submit)}>
           <CategorySelect
             categories={categories}
-            value={value.categoryId}
-            onChange={(categoryId) => onChange({ ...value, categoryId })}
+            registration={register('categoryId')}
+            error={errors.categoryId?.message}
           />
-          <FormField label="メモ" hint="任意">
+          <FormField label="メモ" hint="任意" error={errors.description?.message}>
             <textarea
               className="textarea textarea-bordered min-h-28 w-full resize-y"
-              value={value.description}
-              onChange={(event) => onChange({ ...value, description: event.currentTarget.value })}
+              {...register('description')}
               maxLength={200}
               placeholder="例：タイマー画面の実装"
             />

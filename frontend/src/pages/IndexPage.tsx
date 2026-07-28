@@ -1,4 +1,3 @@
-import type { ActivityResponseDto } from '@/generated/types'
 import ActiveActivityCard from '@/features/activity/components/ActiveActivityCard'
 import ActivityTimeline from '@/features/activity/components/ActivityTimeline'
 import CompletedActivityDialog from '@/features/activity/components/CompletedActivityDialog'
@@ -6,6 +5,7 @@ import DailySummary from '@/features/activity/components/DailySummary'
 import EditActiveActivityDialog from '@/features/activity/components/EditActiveActivityDialog'
 import StartActivityForm from '@/features/activity/components/StartActivityForm'
 import { useActivityDashboard } from '@/features/activity/hooks/useActivityDashboard'
+import type { ActivityResponseDto } from '@/generated/types'
 import { formatToday } from '@/lib/activity/date'
 import { showDialog } from '@/lib/ui/components/Dialog'
 import EmptyState from '@/lib/ui/components/EmptyState'
@@ -141,7 +141,7 @@ const IndexPage = () => {
                 <span className="sm:hidden">追加</span>
               </button>
             </div>
-            <div className="h-[28rem] sm:h-[30rem]" role="tabpanel">
+            <div className="h-112 sm:h-120" role="tabpanel">
               {activeTab === 'current' ? (
                 <div className="h-full overflow-y-auto pr-1">
                   {state.activityState.activeActivity ? (
@@ -159,9 +159,7 @@ const IndexPage = () => {
                   ) : (
                     <StartActivityForm
                       categories={state.categories}
-                      value={state.startForm}
                       isSubmitting={state.pendingAction === 'start'}
-                      onChange={actions.setStartForm}
                       onSubmit={actions.start}
                     />
                   )}

@@ -3,10 +3,14 @@ import type {
   ActivityStateResponseDto,
   CategoryResponseDto,
 } from '@/generated/types'
+import type {
+  ActiveActivityFormValues,
+  ActivityFormValues,
+  CompletedActivityFormValues,
+} from '@/features/activity/activityFormSchema'
 import {
   defaultEndTime,
   errorMessage,
-  isTodayLocal,
   toDateTimeLocal,
   toUtcIso,
   todayDate,
@@ -15,18 +19,7 @@ import { activityApi } from '@/lib/tauri/activityApi'
 import { categoryApi } from '@/lib/tauri/categoryApi'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-export interface ActivityFormValues {
-  categoryId: string
-  description: string
-}
-
-export interface ActiveActivityFormValues extends ActivityFormValues {
-  startedAtLocal: string
-}
-
-export interface CompletedActivityFormValues extends ActiveActivityFormValues {
-  endedAtLocal: string
-}
+export type { ActiveActivityFormValues, ActivityFormValues, CompletedActivityFormValues }
 
 export type AsyncAction =
   | 'start'
@@ -48,32 +41,11 @@ const emptyState = (): ActivityStateResponseDto => ({
   completedActivities: [],
 })
 
-const emptyStartForm = (categories: CategoryResponseDto[]): ActivityFormValues => ({
-  categoryId: categories[0]?.id ?? '',
-  description: '',
-})
-
 const trimDescription = (description: string) => description.trim() || null
-
-const validateCompletedForm = (form: CompletedActivityFormValues) => {
-  if (!form.categoryId) return 'カテゴリを選択してください。'
-  if (!form.startedAtLocal || !form.endedAtLocal) return '開始時刻と終了時刻を入力してください。'
-  if (!isTodayLocal(form.startedAtLocal) || !isTodayLocal(form.endedAtLocal)) {
-    return '今日の日付の時刻を指定してください。'
-  }
-  if (new Date(form.startedAtLocal) >= new Date(form.endedAtLocal)) {
-    return '終了時刻は開始時刻より後にしてください。'
-  }
-  return null
-}
 
 export const useActivityDashboard = () => {
   const [activityState, setActivityState] = useState<ActivityStateResponseDto>(emptyState)
   const [categories, setCategories] = useState<CategoryResponseDto[]>([])
-  const [startForm, setStartForm] = useState<ActivityFormValues>({
-    categoryId: '',
-    description: '',
-  })
   const [activeDurationSeconds, setActiveDurationSeconds] = useState<number | null>(null)
   const [pendingAction, setPendingAction] = useState<AsyncAction>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -90,10 +62,6 @@ export const useActivityDashboard = () => {
       setActivityState(nextState)
       setCategories(nextCategories)
       setActiveDurationSeconds(nextState.activeActivity?.durationSeconds ?? null)
-      setStartForm((current) => ({
-        ...current,
-        categoryId: current.categoryId || emptyStartForm(nextCategories).categoryId,
-      }))
     } catch (nextError) {
       setError(errorMessage(nextError))
     } finally {
@@ -163,34 +131,26 @@ export const useActivityDashboard = () => {
     [pendingAction, refresh],
   )
 
-  const start = useCallback(async () => {
-    if (!startForm.categoryId) {
-      setError('カテゴリを選択してください。')
-      return false
-    }
-    const form = startForm
-    const didStart = await run(
-      'start',
-      () =>
-        activityApi.start({
-          request: { categoryId: form.categoryId, description: trimDescription(form.description) },
-        }),
-      '活動を開始しました。',
-    )
-    if (didStart) setStartForm(emptyStartForm(categories))
-    return didStart
-  }, [categories, run, startForm])
+  const start = useCallback(
+    async (form: ActivityFormValues) => {
+      const didStart = await run(
+        'start',
+        () =>
+          activityApi.start({
+            request: {
+              categoryId: form.categoryId,
+              description: trimDescription(form.description),
+            },
+          }),
+        '活動を開始しました。',
+      )
+      return didStart
+    },
+    [run],
+  )
 
   const saveActive = useCallback(
     (form: ActiveActivityFormValues) => {
-      if (!form.categoryId) {
-        setError('カテゴリを選択してください。')
-        return Promise.resolve(false)
-      }
-      if (!form.startedAtLocal || !isTodayLocal(form.startedAtLocal)) {
-        setError('今日の開始時刻を入力してください。')
-        return Promise.resolve(false)
-      }
       return run(
         'save-active',
         () =>
@@ -209,11 +169,6 @@ export const useActivityDashboard = () => {
 
   const saveCompleted = useCallback(
     (activityId: string | null, form: CompletedActivityFormValues) => {
-      const validationError = validateCompletedForm(form)
-      if (validationError) {
-        setError(validationError)
-        return Promise.resolve(false)
-      }
       return run(
         'save-completed',
         () =>
@@ -277,7 +232,6 @@ export const useActivityDashboard = () => {
     state: {
       activityState,
       categories,
-      startForm,
       activeDurationSeconds,
       pendingAction,
       isLoading,
@@ -288,7 +242,6 @@ export const useActivityDashboard = () => {
     },
     actions: {
       refresh,
-      setStartForm,
       clearError: () => setError(null),
       clearNotice: () => setNotice(null),
       start,
