@@ -10,7 +10,7 @@ interface ModalRootProps {
 const Root = ({ children, open, onClose, title }: ModalRootProps) => {
   if (!open) return null
   return (
-    <dialog className="modal modal-open" aria-modal="true" aria-label={title}>
+    <dialog open className="modal modal-open" role="dialog" aria-modal="true" aria-label={title}>
       <div className="modal-box max-w-xl p-0">{children}</div>
       <button
         type="button"
