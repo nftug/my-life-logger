@@ -24,4 +24,18 @@ async fn category_name_index_rejects_case_insensitive_duplicates() {
         .await;
 
     assert!(result.is_err(), "case-insensitive duplicate should fail");
+
+    let category = database
+        .query_one_raw(sea_orm_migration::sea_orm::Statement::from_string(
+            sea_orm_migration::sea_orm::DatabaseBackend::Sqlite,
+            "SELECT color FROM categories WHERE id = '1'",
+        ))
+        .await
+        .expect("category should load")
+        .expect("category should exist");
+    let color: String = category
+        .try_get("", "color")
+        .expect("color should be present");
+
+    assert_eq!(color, "#8B5CF6");
 }

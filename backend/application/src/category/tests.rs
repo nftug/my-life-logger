@@ -102,6 +102,7 @@ async fn create_rejects_duplicate_names_after_trimming_and_ignoring_ascii_case()
     service
         .handle(CreateCategoryRequestDto {
             name: "Work".to_owned(),
+            color: "#8B5CF6".to_owned(),
         })
         .await
         .expect("first category should be created");
@@ -110,6 +111,7 @@ async fn create_rejects_duplicate_names_after_trimming_and_ignoring_ascii_case()
         let error = service
             .handle(CreateCategoryRequestDto {
                 name: name.to_owned(),
+                color: "#8B5CF6".to_owned(),
             })
             .await
             .expect_err("duplicate category name should be rejected");
@@ -120,12 +122,19 @@ async fn create_rejects_duplicate_names_after_trimming_and_ignoring_ascii_case()
     let categories = repository.find_all().await.expect("categories should load");
     assert_eq!(categories.len(), 1);
     assert_eq!(categories[0].name(), "Work");
+    assert_eq!(categories[0].color().as_str(), "#8B5CF6");
 }
 
 #[tokio::test]
 async fn rename_rejects_another_category_name_but_allows_its_own_name() {
-    let work = Category::new("Work".to_owned());
-    let rest = Category::new("Rest".to_owned());
+    let work = Category::new(
+        "Work".to_owned(),
+        domain::values::CategoryColor::new("#8B5CF6".to_owned()).expect("valid color"),
+    );
+    let rest = Category::new(
+        "Rest".to_owned(),
+        domain::values::CategoryColor::new("#0EA5E9".to_owned()).expect("valid color"),
+    );
     let rest_id = rest.id();
     let repository = Arc::new(TestCategoryRepository::new(vec![work.clone(), rest]));
     let category_name_validation = Arc::new(CategoryNameValidationService::new(repository.clone()));
@@ -138,6 +147,7 @@ async fn rename_rejects_another_category_name_but_allows_its_own_name() {
             },
             RenameCategoryRequestDto {
                 name: " work ".to_owned(),
+                color: "#F43F5E".to_owned(),
             },
         )
         .await
@@ -151,6 +161,7 @@ async fn rename_rejects_another_category_name_but_allows_its_own_name() {
             },
             RenameCategoryRequestDto {
                 name: " WORK ".to_owned(),
+                color: "#F43F5E".to_owned(),
             },
         )
         .await
@@ -162,4 +173,25 @@ async fn rename_rejects_another_category_name_but_allows_its_own_name() {
         .expect("category should load")
         .expect("category should exist");
     assert_eq!(renamed.name(), "WORK");
+    assert_eq!(renamed.color().as_str(), "#F43F5E");
+}
+
+#[tokio::test]
+async fn create_rejects_an_invalid_color() {
+    let repository = Arc::new(TestCategoryRepository::new(Vec::new()));
+    let category_name_validation = Arc::new(CategoryNameValidationService::new(repository.clone()));
+    let service = CreateCategoryService::new(repository, category_name_validation);
+
+    let error = service
+        .handle(CreateCategoryRequestDto {
+            name: "Work".to_owned(),
+            color: "violet".to_owned(),
+        })
+        .await
+        .expect_err("an invalid color should be rejected");
+
+    assert!(matches!(
+        error,
+        ApplicationError::DomainError(domain::shared::errors::DomainError::InvalidCategoryColor)
+    ));
 }

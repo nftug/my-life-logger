@@ -9,6 +9,7 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
     pub name: String,
+    pub color: String,
     #[sea_orm(has_many)]
     pub activities: HasMany<super::activities::Entity>,
 }

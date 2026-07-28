@@ -6,7 +6,7 @@ import ActivityTimeline from './ActivityTimeline'
 const activity: ActivityResponseDto = {
   id: 'activity-1',
   date: '2026-07-28',
-  category: { id: 'category-1', name: '開発' },
+  category: { id: 'category-1', name: '開発', color: '#8B5CF6' },
   description: 'UIを実装する',
   startedAt: '2026-07-28T00:30:00.000Z',
   endedAt: '2026-07-28T01:30:00.000Z',

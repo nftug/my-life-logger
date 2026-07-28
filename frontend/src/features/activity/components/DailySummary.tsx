@@ -1,5 +1,4 @@
 import type { ActivityResponseDto } from '@/generated/types'
-import { categoryColor } from '@/lib/activity/categoryColor'
 import { formatDuration } from '@/lib/activity/date'
 import { useMemo } from 'react'
 
@@ -17,11 +16,12 @@ const DailySummary = ({
   title = '今日の記録時間',
 }: DailySummaryProps) => {
   const byCategory = useMemo(() => {
-    const summaries = new Map<string, { id: string; name: string; seconds: number }>()
+    const summaries = new Map<string, { id: string; name: string; color: string; seconds: number }>()
     for (const activity of activities) {
       const current = summaries.get(activity.category.id) ?? {
         id: activity.category.id,
         name: activity.category.name,
+        color: activity.category.color,
         seconds: 0,
       }
       const duration = activity.endedAt ? activity.durationSeconds : (activeDurationSeconds ?? 0)
@@ -48,7 +48,10 @@ const DailySummary = ({
                 key={summary.id}
                 className="grid grid-cols-[auto_1fr_auto] items-center gap-2 text-sm"
               >
-                <span className={`h-2.5 w-2.5 rounded-full ${categoryColor(summary.id)}`} />
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: summary.color }}
+                />
                 <span className="truncate">{summary.name}</span>
                 <span className="font-mono text-base-content/70">
                   {formatDuration(summary.seconds)}

@@ -1,18 +1,21 @@
 import type { CategoryResponseDto } from '@/generated/types'
+import CategoryColorPicker, {
+  CATEGORY_DEFAULT_COLOR,
+} from '@/features/category/components/CategoryColorPicker'
 import { categoryFormSchema, type CategoryFormValues } from '@/features/category/categoryFormSchema'
 import AsyncButton from '@/lib/ui/components/AsyncButton'
 import EmptyState from '@/lib/ui/components/EmptyState'
 import FormField from '@/lib/ui/components/FormField'
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/solid'
+import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 interface CategoryManagerProps {
   categories: CategoryResponseDto[]
   pendingAction: string | null
-  onCreate: (name: string) => Promise<boolean>
-  onRename: (categoryId: string, name: string) => Promise<boolean>
+  onCreate: (name: string, color: string) => Promise<boolean>
+  onRename: (categoryId: string, name: string, color: string) => Promise<boolean>
   onDelete: (category: CategoryResponseDto) => void
 }
 
@@ -26,16 +29,16 @@ const CategoryManager = ({
   const [editingId, setEditingId] = useState<string | null>(null)
   const createForm = useForm<CategoryFormValues>({
     resolver: valibotResolver(categoryFormSchema),
-    defaultValues: { name: '' },
+    defaultValues: { name: '', color: CATEGORY_DEFAULT_COLOR },
   })
   const editForm = useForm<CategoryFormValues>({ resolver: valibotResolver(categoryFormSchema) })
 
-  const create = async ({ name }: CategoryFormValues) => {
-    if (await onCreate(name)) createForm.reset()
+  const create = async ({ name, color }: CategoryFormValues) => {
+    if (await onCreate(name, color)) createForm.reset()
   }
 
-  const rename = async ({ name }: CategoryFormValues, categoryId: string) => {
-    if (await onRename(categoryId, name)) setEditingId(null)
+  const rename = async ({ name, color }: CategoryFormValues, categoryId: string) => {
+    if (await onRename(categoryId, name, color)) setEditingId(null)
   }
 
   return (
@@ -44,7 +47,7 @@ const CategoryManager = ({
         <div className="card-body">
           <h2 className="card-title text-lg">カテゴリを追加</h2>
           <form
-            className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end"
+            className="mt-2 grid max-w-xl gap-4"
             onSubmit={createForm.handleSubmit(create)}
           >
             <FormField label="カテゴリ名" error={createForm.formState.errors.name?.message}>
@@ -55,7 +58,16 @@ const CategoryManager = ({
                 {...createForm.register('name')}
               />
             </FormField>
-            <AsyncButton type="submit" className="btn-primary" loading={pendingAction === 'create'}>
+            <CategoryColorPicker
+              color={createForm.watch('color')}
+              onChange={(color) => createForm.setValue('color', color, { shouldValidate: true })}
+            />
+            <AsyncButton
+              type="submit"
+              className="btn-primary justify-self-start"
+              loading={pendingAction === 'create'}
+            >
+              <PlusIcon className="h-4 w-4" />
               追加
             </AsyncButton>
           </form>
@@ -75,37 +87,53 @@ const CategoryManager = ({
                   <li key={category.id} className="py-3 first:pt-1 last:pb-0">
                     {editingId === category.id ? (
                       <form
-                        className="flex gap-2"
+                        className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"
                         onSubmit={editForm.handleSubmit((form) => rename(form, category.id))}
                       >
-                        <input
-                          autoFocus
-                          className="input input-bordered input-sm min-w-0 flex-1"
-                          maxLength={100}
-                          aria-invalid={Boolean(editForm.formState.errors.name)}
-                          {...editForm.register('name')}
-                        />
-                        <AsyncButton
-                          type="submit"
-                          className="btn-primary btn-sm"
-                          loading={pendingAction === 'rename'}
-                        >
-                          保存
-                        </AsyncButton>
-                        <button
-                          type="button"
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => {
-                            setEditingId(null)
-                            editForm.reset()
-                          }}
-                        >
-                          戻る
-                        </button>
+                        <div className="grid gap-3">
+                          <input
+                            autoFocus
+                            className="input input-bordered input-sm min-w-0"
+                            maxLength={100}
+                            aria-invalid={Boolean(editForm.formState.errors.name)}
+                            {...editForm.register('name')}
+                          />
+                          <CategoryColorPicker
+                            color={editForm.watch('color')}
+                            onChange={(color) =>
+                              editForm.setValue('color', color, { shouldValidate: true })
+                            }
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <AsyncButton
+                            type="submit"
+                            className="btn-primary btn-sm"
+                            loading={pendingAction === 'rename'}
+                          >
+                            保存
+                          </AsyncButton>
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => {
+                              setEditingId(null)
+                              editForm.reset()
+                            }}
+                          >
+                            戻る
+                          </button>
+                        </div>
                       </form>
                     ) : (
                       <div className="flex items-center justify-between gap-3">
-                        <span className="font-medium">{category.name}</span>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span
+                            className="h-3 w-3 shrink-0 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          <span className="truncate font-medium">{category.name}</span>
+                        </div>
                         <div className="flex gap-1">
                           <button
                             type="button"
@@ -113,7 +141,7 @@ const CategoryManager = ({
                             aria-label={`${category.name}を編集`}
                             onClick={() => {
                               setEditingId(category.id)
-                              editForm.reset({ name: category.name })
+                              editForm.reset({ name: category.name, color: category.color })
                             }}
                           >
                             <PencilIcon className="h-4 w-4" />

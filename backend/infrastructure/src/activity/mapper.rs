@@ -3,7 +3,7 @@ use domain::{
     audit::AuditContext,
     entity::Activity,
     shared::errors::PersistenceError,
-    values::{CategoryReference, TimeRange},
+    values::{CategoryColor, CategoryReference, TimeRange},
 };
 use sea_orm::ActiveValue::Set;
 
@@ -22,7 +22,9 @@ impl ActivityMapper {
             .ended_at
             .map(|ended_at| Utc.from_utc_datetime(&ended_at));
         let time_range = TimeRange::hydrate(started_at, ended_at);
-        let category = CategoryReference::new(model.category_id.into(), category.name);
+        let color = CategoryColor::new(category.color)
+            .map_err(|error| PersistenceError::HydrationError(error.to_string()))?;
+        let category = CategoryReference::new(model.category_id.into(), category.name, color);
 
         Activity::hydrate(
             ctx,

@@ -1,5 +1,4 @@
 import type { ActivityResponseDto } from '@/generated/types'
-import { categoryColor } from '@/lib/activity/categoryColor'
 import { formatDuration, formatTime } from '@/lib/activity/date'
 import AsyncButton from '@/lib/ui/components/AsyncButton'
 import { PencilSquareIcon, StopIcon, XMarkIcon } from '@heroicons/react/24/solid'
@@ -26,7 +25,8 @@ const ActiveActivityCard = ({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <span
-            className={`h-3 w-3 rounded-full ${categoryColor(activity.category.id)} ring-4 ring-white/20`}
+            className="h-3 w-3 rounded-full ring-4 ring-white/20"
+            style={{ backgroundColor: activity.category.color }}
           />
           <div>
             <p className="text-sm opacity-75">いま記録中</p>

@@ -13,6 +13,7 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(uuid("id").primary_key())
                     .col(string("name"))
+                    .col(string("color").not_null().default("#8B5CF6"))
                     .to_owned(),
             )
             .await?;

@@ -1,5 +1,4 @@
 import type { ActivityResponseDto } from '@/generated/types'
-import { categoryColor } from '@/lib/activity/categoryColor'
 import { formatDuration, formatTime } from '@/lib/activity/date'
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/solid'
 
@@ -47,7 +46,8 @@ const ActivityTimeline = ({
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`h-2.5 w-2.5 shrink-0 rounded-full ${categoryColor(activity.category.id)}`}
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: activity.category.color }}
                   />
                   <p className="truncate font-medium">{activity.category.name}</p>
                 </div>

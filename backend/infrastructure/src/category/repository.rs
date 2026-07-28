@@ -32,21 +32,21 @@ impl CategoryRepository for CategoryRepositoryImpl {
             .await
             .map_err(log_db_error)?;
 
-        Ok(model.map(CategoryMapper::to_domain))
+        model.map(CategoryMapper::to_domain).transpose()
     }
 
     async fn find_by_name(&self, name: &str) -> Result<Option<Category>, PersistenceError> {
         let model = Categories::find()
             .from_raw_sql(Statement::from_sql_and_values(
                 DatabaseBackend::Sqlite,
-                "SELECT id, name FROM categories WHERE name = ? COLLATE NOCASE LIMIT 1",
+                "SELECT id, name, color FROM categories WHERE name = ? COLLATE NOCASE LIMIT 1",
                 [name.into()],
             ))
             .one(self.pool.inner_ref())
             .await
             .map_err(log_db_error)?;
 
-        Ok(model.map(CategoryMapper::to_domain))
+        model.map(CategoryMapper::to_domain).transpose()
     }
 
     async fn find_all(&self) -> Result<Vec<Category>, PersistenceError> {
@@ -56,14 +56,14 @@ impl CategoryRepository for CategoryRepositoryImpl {
             .await
             .map_err(log_db_error)?;
 
-        Ok(models.into_iter().map(CategoryMapper::to_domain).collect())
+        models.into_iter().map(CategoryMapper::to_domain).collect()
     }
 
     async fn save(&self, category: &Category) -> Result<(), PersistenceError> {
         categories::Entity::insert(CategoryMapper::to_active_model(category))
             .on_conflict(
                 OnConflict::column(categories::Column::Id)
-                    .update_columns([categories::Column::Name])
+                    .update_columns([categories::Column::Name, categories::Column::Color])
                     .to_owned(),
             )
             .exec(self.pool.inner_ref())

@@ -3,6 +3,7 @@ use std::sync::Arc;
 use derive_new::new;
 use domain::{
     entity::Category, interface::CategoryRepository, service::CategoryNameValidationService,
+    values::CategoryColor,
 };
 
 use crate::{
@@ -20,7 +21,8 @@ impl CreateCategoryService {
         &self,
         request: CreateCategoryRequestDto,
     ) -> Result<EntityCreationDTO, ApplicationError> {
-        let category = Category::new(request.name);
+        let color = CategoryColor::new(request.color)?;
+        let category = Category::new(request.name, color);
         self.category_name_validation
             .ensure_unique(&category)
             .await?;

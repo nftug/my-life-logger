@@ -79,23 +79,23 @@ export const useCategories = () => {
     actions: {
       refresh,
       clearError: () => setError(null),
-      create: (name: string) => {
+      create: (name: string, color: string) => {
         const valid = validName(name)
         return valid
           ? run(
               'create',
-              () => categoryApi.create({ request: { name: valid } }),
+              () => categoryApi.create({ request: { name: valid, color } }),
               'カテゴリを追加しました。',
             )
           : Promise.resolve(false)
       },
-      rename: (categoryId: string, name: string) => {
+      rename: (categoryId: string, name: string, color: string) => {
         const valid = validName(name)
         return valid
           ? run(
               'rename',
-              () => categoryApi.rename({ identity: { categoryId }, request: { name: valid } }),
-              'カテゴリ名を更新しました。',
+              () => categoryApi.rename({ identity: { categoryId }, request: { name: valid, color } }),
+              'カテゴリを更新しました。',
             )
           : Promise.resolve(false)
       },

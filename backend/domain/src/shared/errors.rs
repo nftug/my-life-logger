@@ -20,6 +20,8 @@ pub enum DomainError {
     CategoryNotFound,
     #[error("Category name already exists")]
     CategoryNameAlreadyExists,
+    #[error("Category color must be in #RRGGBB format")]
+    InvalidCategoryColor,
     #[error(transparent)]
     Persistence(#[from] PersistenceError),
     #[error("{0}")]
