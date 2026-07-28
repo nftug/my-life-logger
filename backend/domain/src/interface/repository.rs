@@ -26,6 +26,8 @@ pub trait CategoryRepository: Send + Sync {
         category_id: CategoryId,
     ) -> Result<Option<Category>, PersistenceError>;
 
+    async fn find_by_name(&self, name: &str) -> Result<Option<Category>, PersistenceError>;
+
     async fn find_all(&self) -> Result<Vec<Category>, PersistenceError>;
 
     async fn save(&self, category: &Category) -> Result<(), PersistenceError>;

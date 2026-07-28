@@ -23,12 +23,12 @@ impl Category {
     pub fn new(name: String) -> Self {
         Self {
             id: CategoryId::new_v4(),
-            name,
+            name: name.trim().to_owned(),
         }
     }
 
     pub fn rename(&mut self, new_name: String) {
-        self.name = new_name;
+        self.name = new_name.trim().to_owned();
     }
 }
 

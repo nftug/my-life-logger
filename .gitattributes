@@ -1,0 +1,7 @@
+# Exclude test-only sources from GitHub Linguist language statistics.
+**/tests.rs linguist-generated=true
+**/tests/** linguist-generated=true
+**/*_test.rs linguist-generated=true
+**/*_tests.rs linguist-generated=true
+**/*.test.* linguist-generated=true
+**/*.spec.* linguist-generated=true

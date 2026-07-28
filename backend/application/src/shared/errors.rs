@@ -7,6 +7,8 @@ pub enum ApplicationError {
     DomainError(DomainError),
     #[error("Not found")]
     NotFound,
+    #[error("カテゴリ名は既に存在します")]
+    CategoryNameAlreadyExists,
     #[error("{0}")]
     InternalError(String),
 }
@@ -15,6 +17,8 @@ impl From<DomainError> for ApplicationError {
     fn from(err: DomainError) -> Self {
         match err {
             DomainError::ActivityNotFound => ApplicationError::NotFound,
+            DomainError::CategoryNameAlreadyExists => ApplicationError::CategoryNameAlreadyExists,
+            DomainError::Persistence(err) => err.into(),
             other => ApplicationError::DomainError(other),
         }
     }

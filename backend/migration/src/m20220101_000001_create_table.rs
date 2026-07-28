@@ -18,6 +18,13 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
+            .get_connection()
+            .execute_unprepared(
+                "CREATE UNIQUE INDEX idx_categories_name_nocase ON categories(name COLLATE NOCASE)",
+            )
+            .await?;
+
+        manager
             .create_table(
                 Table::create()
                     .table("activities")

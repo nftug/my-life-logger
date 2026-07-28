@@ -18,6 +18,10 @@ pub enum DomainError {
     ActivityNotFound,
     #[error("Category not found")]
     CategoryNotFound,
+    #[error("Category name already exists")]
+    CategoryNameAlreadyExists,
+    #[error(transparent)]
+    Persistence(#[from] PersistenceError),
     #[error("{0}")]
     GenericError(String),
 }
