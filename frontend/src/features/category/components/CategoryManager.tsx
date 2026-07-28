@@ -69,74 +69,76 @@ const CategoryManager = ({
             <span className="badge badge-outline">{categories.length} 件</span>
           </div>
           {categories.length > 0 ? (
-            <ul className="divide-y divide-base-200">
-              {categories.map((category) => (
-                <li key={category.id} className="py-3 first:pt-1 last:pb-0">
-                  {editingId === category.id ? (
-                    <form
-                      className="flex gap-2"
-                      onSubmit={editForm.handleSubmit((form) => rename(form, category.id))}
-                    >
-                      <input
-                        autoFocus
-                        className="input input-bordered input-sm min-w-0 flex-1"
-                        maxLength={100}
-                        aria-invalid={Boolean(editForm.formState.errors.name)}
-                        {...editForm.register('name')}
-                      />
-                      <AsyncButton
-                        type="submit"
-                        className="btn-primary btn-sm"
-                        loading={pendingAction === 'rename'}
+            <div className="h-80 overflow-y-auto pr-1">
+              <ul className="divide-y divide-base-200">
+                {categories.map((category) => (
+                  <li key={category.id} className="py-3 first:pt-1 last:pb-0">
+                    {editingId === category.id ? (
+                      <form
+                        className="flex gap-2"
+                        onSubmit={editForm.handleSubmit((form) => rename(form, category.id))}
                       >
-                        保存
-                      </AsyncButton>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => {
-                          setEditingId(null)
-                          editForm.reset()
-                        }}
-                      >
-                        戻る
-                      </button>
-                    </form>
-                  ) : (
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="font-medium">{category.name}</span>
-                      <div className="flex gap-1">
+                        <input
+                          autoFocus
+                          className="input input-bordered input-sm min-w-0 flex-1"
+                          maxLength={100}
+                          aria-invalid={Boolean(editForm.formState.errors.name)}
+                          {...editForm.register('name')}
+                        />
+                        <AsyncButton
+                          type="submit"
+                          className="btn-primary btn-sm"
+                          loading={pendingAction === 'rename'}
+                        >
+                          保存
+                        </AsyncButton>
                         <button
                           type="button"
-                          className="btn btn-ghost btn-square btn-sm"
-                          aria-label={`${category.name}を編集`}
+                          className="btn btn-ghost btn-sm"
                           onClick={() => {
-                            setEditingId(category.id)
-                            editForm.reset({ name: category.name })
+                            setEditingId(null)
+                            editForm.reset()
                           }}
                         >
-                          <PencilIcon className="h-4 w-4" />
+                          戻る
                         </button>
-                        <button
-                          type="button"
-                          className="btn btn-ghost btn-square btn-sm text-error"
-                          aria-label={`${category.name}を削除`}
-                          disabled={pendingAction !== null}
-                          onClick={() => onDelete(category)}
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
+                      </form>
+                    ) : (
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-medium">{category.name}</span>
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-square btn-sm"
+                            aria-label={`${category.name}を編集`}
+                            onClick={() => {
+                              setEditingId(category.id)
+                              editForm.reset({ name: category.name })
+                            }}
+                          >
+                            <PencilIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-square btn-sm text-error"
+                            aria-label={`${category.name}を削除`}
+                            disabled={pendingAction !== null}
+                            onClick={() => onDelete(category)}
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {editingId === category.id && editForm.formState.errors.name?.message ? (
-                    <p className="mt-1 text-sm text-error">
-                      {editForm.formState.errors.name.message}
-                    </p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
+                    )}
+                    {editingId === category.id && editForm.formState.errors.name?.message ? (
+                      <p className="mt-1 text-sm text-error">
+                        {editForm.formState.errors.name.message}
+                      </p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : (
             <EmptyState
               title="カテゴリはまだありません"
