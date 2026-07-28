@@ -18,7 +18,6 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            greet,
             commands::activity_commands::get_activity_state,
             commands::activity_commands::start_activity,
             commands::activity_commands::stop_activity,
@@ -33,13 +32,4 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-#[tauri::command]
-fn greet(name: &str) -> Result<String, String> {
-    if name.trim().is_empty() {
-        Err("Name cannot be empty.".into())
-    } else {
-        Ok(format!("Hello, {}! You've been greeted from Rust!", name))
-    }
 }
