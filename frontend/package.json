@@ -22,19 +22,12 @@
     "@hookform/resolvers": "^5.5.7",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
-<<<<<<< HEAD
     "react": "^19.0.0",
     "react-call": "^1.8.2",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.83.0",
     "react-router-dom": "^7.0.0",
     "valibot": "^1.4.2"
-=======
-    "dayjs": "^1.11.19",
-    "nanoevents": "^9.1.0",
-    "solid-heroicons": "^3.0.0",
-    "solid-js": "^1.8.0"
->>>>>>> origin/main
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
