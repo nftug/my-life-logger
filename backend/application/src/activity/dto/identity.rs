@@ -14,7 +14,6 @@ pub struct SaveCompletedActivityIdentityDto {
 pub struct DeleteCompletedActivityIdentityDto {
     pub date: NaiveDate,
     pub activity_id: ActivityId,
-    pub date: NaiveDate,
 }
 
 #[derive(Debug, Deserialize)]
