@@ -19,6 +19,7 @@ import {
 import { activityApi } from '@/lib/tauri/activityApi'
 import { categoryApi } from '@/lib/tauri/categoryApi'
 import { showDialog } from '@/lib/ui/components/Dialog'
+import { useActivityDurationEvent } from './useActivityDurationEvent'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 export type { ActiveActivityFormValues, ActivityFormValues, CompletedActivityFormValues }
@@ -80,30 +81,7 @@ export const useActivityDashboard = (date = todayDate()) => {
     void refresh()
   }, [refresh])
 
-  useEffect(() => {
-    let disposed = false
-    let unlisten: (() => void) | undefined
-
-    void activityApi
-      .onStateEvent((event) => {
-        if (event.date === date) setActiveDurationSeconds(event.activeDurationSeconds ?? null)
-      })
-      .then((unsubscribe) => {
-        if (disposed) {
-          unsubscribe()
-          return
-        }
-        unlisten = unsubscribe
-      })
-      .catch((eventError: unknown) => {
-        if (!disposed) void showApiError(errorMessage(eventError))
-      })
-
-    return () => {
-      disposed = true
-      unlisten?.()
-    }
-  }, [date])
+  useActivityDurationEvent({ date, onDurationChange: setActiveDurationSeconds })
 
   useEffect(() => {
     if (!notice) return
