@@ -9,7 +9,7 @@ import type { ActivityResponseDto } from '@/generated/types'
 import { formatToday } from '@/lib/activity/date'
 import { showDialog } from '@/lib/ui/components/Dialog'
 import EmptyState from '@/lib/ui/components/EmptyState'
-import { ErrorAlert, LoadingState } from '@/lib/ui/components/Feedback'
+import { LoadingState } from '@/lib/ui/components/Feedback'
 import PageHeader from '@/lib/ui/components/PageHeader'
 import SegmentedTabs from '@/lib/ui/components/SegmentedTabs'
 import { PlusIcon } from '@heroicons/react/24/solid'
@@ -91,7 +91,6 @@ const IndexPage = () => {
         description="活動を記録して、今日の流れを振り返りましょう。"
       />
 
-      {state.error ? <ErrorAlert message={state.error} onRetry={actions.refresh} /> : null}
       {state.notice ? (
         <div className={`toast toast-top toast-end z-50`} role="status">
           <div

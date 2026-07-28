@@ -6,7 +6,7 @@ import type { ActivityResponseDto } from '@/generated/types'
 import { formatDate, yesterdayDate } from '@/lib/activity/date'
 import { showDialog } from '@/lib/ui/components/Dialog'
 import EmptyState from '@/lib/ui/components/EmptyState'
-import { ErrorAlert, LoadingState } from '@/lib/ui/components/Feedback'
+import { LoadingState } from '@/lib/ui/components/Feedback'
 import PageHeader from '@/lib/ui/components/PageHeader'
 import SegmentedTabs from '@/lib/ui/components/SegmentedTabs'
 import { PlusIcon } from '@heroicons/react/24/solid'
@@ -66,7 +66,6 @@ const HistoryPage = () => {
         description="日付を選んで、保存済みの活動を編集・削除できます。"
       />
 
-      {state.error ? <ErrorAlert message={state.error} onRetry={actions.refresh} /> : null}
       {state.notice ? (
         <div className="toast toast-top toast-end z-50" role="status">
           <div

@@ -1,9 +1,17 @@
 import type { CategoryResponseDto } from '@/generated/types'
 import { errorMessage } from '@/lib/activity/date'
 import { categoryApi } from '@/lib/tauri/categoryApi'
+import { showDialog } from '@/lib/ui/components/Dialog'
 import { useCallback, useEffect, useState } from 'react'
 
 type PendingAction = 'create' | 'rename' | 'delete' | null
+
+const showApiError = (message: string) =>
+  showDialog({
+    title: 'エラーが発生しました',
+    message,
+    buttons: [{ label: '閉じる', value: 'close', variant: 'primary' }],
+  })
 
 export const useCategories = () => {
   const [categories, setCategories] = useState<CategoryResponseDto[]>([])
@@ -17,7 +25,7 @@ export const useCategories = () => {
     try {
       setCategories(await categoryApi.getAll())
     } catch (nextError) {
-      setError(errorMessage(nextError))
+      void showApiError(errorMessage(nextError))
     } finally {
       setIsLoading(false)
     }
@@ -48,7 +56,7 @@ export const useCategories = () => {
         setNotice(successMessage)
         return true
       } catch (nextError) {
-        setError(errorMessage(nextError))
+        await showApiError(errorMessage(nextError))
         return false
       } finally {
         setPendingAction(null)

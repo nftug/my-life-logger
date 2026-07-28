@@ -18,6 +18,7 @@ import {
 } from '@/lib/activity/date'
 import { activityApi } from '@/lib/tauri/activityApi'
 import { categoryApi } from '@/lib/tauri/categoryApi'
+import { showDialog } from '@/lib/ui/components/Dialog'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 export type { ActiveActivityFormValues, ActivityFormValues, CompletedActivityFormValues }
@@ -36,6 +37,13 @@ interface Notice {
   message: string
 }
 
+const showApiError = (message: string) =>
+  showDialog({
+    title: 'エラーが発生しました',
+    message,
+    buttons: [{ label: '閉じる', value: 'close', variant: 'primary' }],
+  })
+
 const emptyState = (): ActivityStateResponseDto => ({
   date: todayDate(),
   activeActivity: null,
@@ -50,11 +58,9 @@ export const useActivityDashboard = (date = todayDate()) => {
   const [activeDurationSeconds, setActiveDurationSeconds] = useState<number | null>(null)
   const [pendingAction, setPendingAction] = useState<AsyncAction>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<Notice | null>(null)
 
   const refresh = useCallback(async () => {
-    setError(null)
     try {
       const [nextState, nextCategories] = await Promise.all([
         activityApi.getState({ identity: { date } }),
@@ -64,7 +70,7 @@ export const useActivityDashboard = (date = todayDate()) => {
       setCategories(nextCategories)
       setActiveDurationSeconds(nextState.activeActivity?.durationSeconds ?? null)
     } catch (nextError) {
-      setError(errorMessage(nextError))
+      void showApiError(errorMessage(nextError))
     } finally {
       setIsLoading(false)
     }
@@ -90,7 +96,7 @@ export const useActivityDashboard = (date = todayDate()) => {
         unlisten = unsubscribe
       })
       .catch((eventError: unknown) => {
-        if (!disposed) setError(errorMessage(eventError))
+        if (!disposed) void showApiError(errorMessage(eventError))
       })
 
     return () => {
@@ -113,7 +119,6 @@ export const useActivityDashboard = (date = todayDate()) => {
     ) => {
       if (pendingAction) return false
       setPendingAction(action)
-      setError(null)
       try {
         await operation()
         setNotice({ tone: 'success', message: successMessage })
@@ -121,8 +126,7 @@ export const useActivityDashboard = (date = todayDate()) => {
         return true
       } catch (nextError) {
         const message = errorMessage(nextError)
-        setError(message)
-        setNotice({ tone: 'error', message })
+        await showApiError(message)
         return false
       } finally {
         setPendingAction(null)
@@ -233,14 +237,12 @@ export const useActivityDashboard = (date = todayDate()) => {
       activeDurationSeconds,
       pendingAction,
       isLoading,
-      error,
       notice,
       allActivities,
       totalSeconds,
     },
     actions: {
       refresh,
-      clearError: () => setError(null),
       clearNotice: () => setNotice(null),
       start,
       saveActive,
