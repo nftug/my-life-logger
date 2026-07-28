@@ -1,44 +1,62 @@
 import ThemeSwitcher from '@/lib/ui/components/ThemeSwitcher'
-import { Bars3Icon } from '@heroicons/react/24/solid'
+import { Bars3Icon, ClockIcon, TagIcon } from '@heroicons/react/24/solid'
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
+
+const navigation = [
+  { to: '/', label: '今日の記録', icon: ClockIcon, end: true },
+  { to: '/categories', label: 'カテゴリ', icon: TagIcon, end: false },
+]
 
 const App = ({ children }: { children: ReactNode }) => (
-  <div className="drawer">
+  <div className="drawer lg:drawer-open">
     <input id="app-drawer" type="checkbox" className="drawer-toggle" />
-    <div className="drawer-content min-h-screen">
-      <div className="navbar bg-base-100 shadow-sm">
-        <div className="flex-none">
-          <label htmlFor="app-drawer" className="btn btn-square btn-ghost" aria-label="Menu">
-            <Bars3Icon className="h-6 w-6" />
-          </label>
-        </div>
-
-        <div className="flex-1">
-          <Link className="btn btn-ghost text-xl" to="/">
-            My Life Logger
-          </Link>
-        </div>
-
-        <div className="flex-none">
-          <ThemeSwitcher />
-        </div>
+    <div className="drawer-content min-h-screen bg-base-200/45">
+      <div className="navbar sticky top-0 z-30 border-b border-base-200 bg-base-100/90 px-4 backdrop-blur lg:hidden">
+        <label
+          htmlFor="app-drawer"
+          className="btn btn-square btn-ghost"
+          aria-label="メニューを開く"
+        >
+          <Bars3Icon className="h-6 w-6" />
+        </label>
+        <span className="ml-2 flex-1 text-lg font-semibold">My Life Logger</span>
+        <ThemeSwitcher />
       </div>
-
-      <main className="overflow-auto" style={{ height: 'calc(100vh - 4rem)' }}>
-        {children}
-      </main>
+      <main className="min-h-screen overflow-auto">{children}</main>
     </div>
 
-    <div className="drawer-side">
-      <label htmlFor="app-drawer" className="drawer-overlay" aria-label="Close menu" />
-      <aside className="min-h-full w-72 bg-base-200">
-        <div className="p-4 text-lg font-semibold">Menu</div>
-        <ul className="menu px-4 pb-6 w-full">
-          <li>
-            <Link to="/">Home</Link>
-          </li>
-        </ul>
+    <div className="drawer-side z-40">
+      <label htmlFor="app-drawer" className="drawer-overlay" aria-label="メニューを閉じる" />
+      <aside className="flex min-h-full w-64 flex-col border-r border-base-200 bg-base-100 p-4">
+        <div className="mb-8 flex items-center justify-between px-2 pt-2">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+              LIFE LOG
+            </p>
+            <h1 className="mt-1 text-xl font-semibold tracking-tight">My Life Logger</h1>
+          </div>
+          <ThemeSwitcher />
+        </div>
+        <nav aria-label="メインメニュー">
+          <ul className="menu gap-1 p-0">
+            {navigation.map(({ to, label, icon: Icon, end }) => (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  end={end}
+                  className={({ isActive }) => (isActive ? 'active font-medium' : '')}
+                >
+                  <Icon className="h-5 w-5" />
+                  {label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <p className="mt-auto px-2 pb-2 text-xs leading-relaxed text-base-content/45">
+          今日の時間を、やさしく見える化。
+        </p>
       </aside>
     </div>
   </div>

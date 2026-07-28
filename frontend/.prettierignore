@@ -2,3 +2,5 @@ node_modules/
 dist/
 build/
 .svelte-kit/
+src/generated/
+src-tauri/

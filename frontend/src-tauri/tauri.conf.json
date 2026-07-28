@@ -6,9 +6,11 @@
     },
     "windows": [
       {
-        "height": 600,
+        "height": 820,
+        "minHeight": 720,
+        "minWidth": 820,
         "title": "My Life Logger",
-        "width": 800
+        "width": 1080
       }
     ]
   },

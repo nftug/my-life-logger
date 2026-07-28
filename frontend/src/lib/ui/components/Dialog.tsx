@@ -1,5 +1,5 @@
 import { createCallable, type ReactCall } from 'react-call'
-import { useEffect } from 'react'
+import { useEffect, useId } from 'react'
 
 type ButtonVariant =
   | 'neutral'
@@ -30,12 +30,12 @@ export interface DialogProps {
 
 export type DialogResponse = string | null
 
-const DialogComponent: ReactCall.UserComponent<DialogProps, DialogResponse, Record<string, never>> = ({
-  call,
-  title,
-  message,
-  buttons,
-}) => {
+const DialogComponent: ReactCall.UserComponent<
+  DialogProps,
+  DialogResponse,
+  Record<string, never>
+> = ({ call, title, message, buttons }) => {
+  const titleId = useId()
   useEffect(() => {
     if (call.ended) return
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -59,9 +59,15 @@ const DialogComponent: ReactCall.UserComponent<DialogProps, DialogResponse, Reco
   }
 
   return (
-    <dialog className={`modal${call.ended ? '' : ' modal-open'}`}>
+    <dialog
+      className={`modal${call.ended ? '' : ' modal-open'}`}
+      aria-modal="true"
+      aria-labelledby={titleId}
+    >
       <div className="modal-box">
-        <h3 className="text-lg font-bold">{title}</h3>
+        <h3 id={titleId} className="text-lg font-bold">
+          {title}
+        </h3>
         {message && <p className="py-4">{message}</p>}
         <div className="modal-action">
           {buttons.map((btn) => (
