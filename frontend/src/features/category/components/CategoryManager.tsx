@@ -26,8 +26,8 @@ const CategoryManager = ({
 
   return (
     <>
-      <section className="card border border-base-200 bg-base-100 shadow-sm">
-        <div className="card-body">
+      <section className="card flex min-h-0 flex-1 border border-base-200 bg-base-100 shadow-sm">
+        <div className="card-body flex min-h-0 flex-1 flex-col">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center">
               <h2 className="card-title text-lg">カテゴリ一覧</h2>
@@ -43,7 +43,7 @@ const CategoryManager = ({
             </button>
           </div>
           {categories.length > 0 ? (
-            <div className="h-80 overflow-y-auto pr-1">
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
               <ul className="divide-y divide-base-200">
                 {categories.map((category) => (
                   <li key={category.id} className="py-3 first:pt-1 last:pb-0">
@@ -83,6 +83,7 @@ const CategoryManager = ({
             <EmptyState
               title="カテゴリはまだありません"
               description="よく使う活動を追加すると、すぐに記録を始められます。"
+              className="flex min-h-0 flex-1 flex-col items-center justify-center"
             />
           )}
         </div>

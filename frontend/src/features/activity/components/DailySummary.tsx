@@ -16,7 +16,10 @@ const DailySummary = ({
   title = '今日の記録時間',
 }: DailySummaryProps) => {
   const byCategory = useMemo(() => {
-    const summaries = new Map<string, { id: string; name: string; color: string; seconds: number }>()
+    const summaries = new Map<
+      string,
+      { id: string; name: string; color: string; seconds: number }
+    >()
     for (const activity of activities) {
       const current = summaries.get(activity.category.id) ?? {
         id: activity.category.id,
@@ -32,8 +35,8 @@ const DailySummary = ({
   }, [activeDurationSeconds, activities])
 
   return (
-    <section className="card h-full border border-base-200 bg-base-100 shadow-sm">
-      <div className="card-body h-full min-h-0 gap-5">
+    <section className="card flex h-full min-h-0 border border-base-200 bg-base-100 shadow-sm">
+      <div className="card-body flex h-full min-h-0 flex-1 flex-col gap-5">
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-base-content/60">{title}</p>

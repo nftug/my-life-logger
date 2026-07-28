@@ -23,8 +23,8 @@ const ActivityTimeline = ({
   onCancelActive,
   onDelete,
 }: ActivityTimelineProps) => (
-  <section className="card h-full border border-base-200 bg-base-100 shadow-sm">
-    <div className="card-body h-full min-h-0 gap-5">
+  <section className="card flex h-full min-h-0 border border-base-200 bg-base-100 shadow-sm">
+    <div className="card-body flex h-full min-h-0 flex-1 flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="card-title">{title}</h2>

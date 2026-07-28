@@ -92,7 +92,7 @@ const HistoryPage = () => {
         </div>
       ) : null}
 
-      <section className="flex flex-col gap-4" aria-label="過去の記録の詳細">
+      <section className="flex min-h-0 flex-1 flex-col gap-4" aria-label="過去の記録の詳細">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <SegmentedTabs
             ariaLabel="過去の記録の表示を切り替え"
@@ -124,7 +124,7 @@ const HistoryPage = () => {
             </button>
           </div>
         </div>
-        <div className="h-112 sm:h-120" role="tabpanel">
+        <div className="min-h-0 flex-1" role="tabpanel">
           {activeTab === 'timeline' ? (
             state.allActivities.length > 0 ? (
               <ActivityTimeline
@@ -140,6 +140,7 @@ const HistoryPage = () => {
               <EmptyState
                 title="この日の記録はありません"
                 description="別の日付を選ぶと、その日の記録を確認・編集できます。"
+                className="flex h-full min-h-0 flex-col items-center justify-center"
               />
             )
           ) : (

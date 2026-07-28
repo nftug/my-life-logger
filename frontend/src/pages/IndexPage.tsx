@@ -129,6 +129,7 @@ const IndexPage = () => {
         <EmptyState
           title="まずはカテゴリを作りましょう"
           description="活動を記録するにはカテゴリが必要です。たとえば「開発」「勉強」「休憩」などから始めるのがおすすめです。"
+          className="flex min-h-0 flex-1 flex-col items-center justify-center"
           action={
             <Link to="/categories" className="btn btn-primary">
               カテゴリを管理する
@@ -137,7 +138,7 @@ const IndexPage = () => {
         />
       ) : (
         <>
-          <section className="flex flex-col gap-4" aria-label="今日の記録の詳細">
+          <section className="flex min-h-0 flex-1 flex-col gap-4" aria-label="今日の記録の詳細">
             <div className="flex items-center justify-between gap-3">
               <SegmentedTabs
                 ariaLabel="今日の記録の表示を切り替え"
@@ -156,7 +157,7 @@ const IndexPage = () => {
                 <span className="sm:hidden">追加</span>
               </button>
             </div>
-            <div className="h-112 sm:h-120" role="tabpanel">
+            <div className="min-h-0 flex-1" role="tabpanel">
               {activeTab === 'current' ? (
                 <div className="h-full overflow-y-auto pr-1">
                   {state.activityState.activeActivity ? (
