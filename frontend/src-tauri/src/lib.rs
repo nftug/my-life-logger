@@ -3,6 +3,7 @@ use tauri::Manager;
 pub mod commands;
 pub mod events;
 pub mod state;
+mod tray;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -12,10 +13,11 @@ pub fn run() {
             let state = tauri::async_runtime::block_on(state::AppState::new(app))?;
             app.manage(state);
             events::start_activity_publisher(app.handle());
+            tray::setup(app)?;
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            greet,
             commands::activity_commands::get_activity_state,
             commands::activity_commands::start_activity,
             commands::activity_commands::stop_activity,
@@ -30,13 +32,4 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-#[tauri::command]
-fn greet(name: &str) -> Result<String, String> {
-    if name.trim().is_empty() {
-        Err("Name cannot be empty.".into())
-    } else {
-        Ok(format!("Hello, {}! You've been greeted from Rust!", name))
-    }
 }
