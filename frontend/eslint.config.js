@@ -45,7 +45,11 @@ export default [
     },
   },
   {
+<<<<<<< HEAD
     ignores: ['build/', 'dist/', 'node_modules/', 'src/generated/', 'src-tauri/target/**'],
+=======
+    ignores: ['build/', 'dist/', 'node_modules/', 'src-tauri/target/**', 'src/generated/**'],
+>>>>>>> origin/main
   },
   prettier,
 ]

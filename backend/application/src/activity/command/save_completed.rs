@@ -37,9 +37,15 @@ impl SaveCompletedActivityService {
 
         let mut activity_state = self
             .repository
+<<<<<<< HEAD
             .load(&ctx, activity_date)
             .await?
             .unwrap_or(ActivityState::new(activity_date));
+=======
+            .load(&ctx, identity.date)
+            .await?
+            .unwrap_or(ActivityState::new(identity.date));
+>>>>>>> origin/main
 
         activity_state.upsert_completed(
             &ctx,
