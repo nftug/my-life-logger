@@ -40,9 +40,10 @@ const CategoryEditorDialog = ({
     reset,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<CategoryFormValues>({
     resolver: valibotResolver(categoryFormSchema),
+    mode: 'onChange',
     defaultValues: createDefaultValues(),
   })
 
@@ -89,7 +90,7 @@ const CategoryEditorDialog = ({
           <button type="button" className="btn btn-ghost" onClick={onClose}>
             戻る
           </button>
-          <AsyncButton type="submit" className="btn-primary" loading={isSubmitting}>
+          <AsyncButton type="submit" className="btn-primary" loading={isSubmitting} disabled={!isValid}>
             保存
           </AsyncButton>
         </Modal.Actions>

@@ -22,9 +22,10 @@ const StartActivityForm = ({ categories, isSubmitting, onSubmit }: StartActivity
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<ActivityFormValues>({
     resolver: valibotResolver(startActivitySchema),
+    mode: 'onChange',
     defaultValues: { categoryId: '', description: '' },
   })
 
@@ -58,7 +59,12 @@ const StartActivityForm = ({ categories, isSubmitting, onSubmit }: StartActivity
               placeholder="例：タイマー画面の実装"
             />
           </FormField>
-          <AsyncButton type="submit" className="btn-primary self-start" loading={isSubmitting}>
+          <AsyncButton
+            type="submit"
+            className="btn-primary self-start"
+            loading={isSubmitting}
+            disabled={!isValid}
+          >
             <PlayIcon className="h-4 w-4" />
             開始
           </AsyncButton>
