@@ -190,6 +190,7 @@ const IndexPage = () => {
         categories={state.categories}
         open={isCompletedDialogOpen}
         isSubmitting={state.pendingAction === 'save-completed'}
+        date={state.activityState.date}
         createForm={actions.completedFormFor}
         onClose={() => setIsCompletedDialogOpen(false)}
         onSave={actions.saveCompleted}

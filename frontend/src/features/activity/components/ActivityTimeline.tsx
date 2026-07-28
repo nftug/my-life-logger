@@ -6,6 +6,8 @@ import { PencilIcon, TrashIcon } from '@heroicons/react/24/solid'
 interface ActivityTimelineProps {
   activities: ActivityResponseDto[]
   activeDurationSeconds: number | null
+  title?: string
+  description?: string
   onEdit: (activity: ActivityResponseDto) => void
   onEditActive: () => void
   onCancelActive: () => void
@@ -15,6 +17,8 @@ interface ActivityTimelineProps {
 const ActivityTimeline = ({
   activities,
   activeDurationSeconds,
+  title = '今日のタイムライン',
+  description = '開始時刻順に表示しています。',
   onEdit,
   onEditActive,
   onCancelActive,
@@ -24,8 +28,8 @@ const ActivityTimeline = ({
     <div className="card-body h-full min-h-0 gap-5">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="card-title">今日のタイムライン</h2>
-          <p className="text-sm text-base-content/60">開始時刻順に表示しています。</p>
+          <h2 className="card-title">{title}</h2>
+          <p className="text-sm text-base-content/60">{description}</p>
         </div>
         <span className="badge badge-ghost">{activities.length} 件</span>
       </div>

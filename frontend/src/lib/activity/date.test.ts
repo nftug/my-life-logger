@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDuration, isTodayLocal, toDateTimeLocal, toUtcIso, todayDate } from './date'
+import { formatDuration, toDateTimeLocal, toUtcIso, todayDate } from './date'
 
 describe('activity date utilities', () => {
   it('formats elapsed time as a fixed-width timer', () => {
@@ -10,10 +10,5 @@ describe('activity date utilities', () => {
   it('round-trips a local datetime through UTC', () => {
     const localValue = `${todayDate()}T09:30`
     expect(toDateTimeLocal(toUtcIso(localValue))).toBe(localValue)
-  })
-
-  it('accepts today and rejects a different local date', () => {
-    expect(isTodayLocal(`${todayDate()}T12:00`)).toBe(true)
-    expect(isTodayLocal('2000-01-01T12:00')).toBe(false)
   })
 })

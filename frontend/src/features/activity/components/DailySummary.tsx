@@ -7,9 +7,15 @@ interface DailySummaryProps {
   activities: ActivityResponseDto[]
   activeDurationSeconds: number | null
   totalSeconds: number
+  title?: string
 }
 
-const DailySummary = ({ activities, activeDurationSeconds, totalSeconds }: DailySummaryProps) => {
+const DailySummary = ({
+  activities,
+  activeDurationSeconds,
+  totalSeconds,
+  title = '今日の記録時間',
+}: DailySummaryProps) => {
   const byCategory = useMemo(() => {
     const summaries = new Map<string, { id: string; name: string; seconds: number }>()
     for (const activity of activities) {
@@ -30,7 +36,7 @@ const DailySummary = ({ activities, activeDurationSeconds, totalSeconds }: Daily
       <div className="card-body h-full min-h-0 gap-5">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-base-content/60">今日の記録時間</p>
+            <p className="text-sm font-medium text-base-content/60">{title}</p>
             <p className="mt-1 font-mono text-3xl font-semibold">{formatDuration(totalSeconds)}</p>
           </div>
           <span className="badge badge-outline">{activities.length} 件</span>

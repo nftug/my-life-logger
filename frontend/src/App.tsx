@@ -1,10 +1,11 @@
 import ThemeSwitcher from '@/lib/ui/components/ThemeSwitcher'
-import { Bars3Icon, ClockIcon, TagIcon } from '@heroicons/react/24/solid'
+import { Bars3Icon, CalendarDaysIcon, ClockIcon, TagIcon } from '@heroicons/react/24/solid'
 import type { ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 
 const navigation = [
   { to: '/', label: '今日の記録', icon: ClockIcon, end: true },
+  { to: '/history', label: '過去の記録', icon: CalendarDaysIcon, end: false },
   { to: '/categories', label: 'カテゴリ', icon: TagIcon, end: false },
 ]
 

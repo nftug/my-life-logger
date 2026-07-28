@@ -1,6 +1,6 @@
 import type { ActivityResponseDto, CategoryResponseDto } from '@/generated/types'
 import {
-  activeActivitySchema,
+  createActiveActivitySchema,
   type ActiveActivityFormValues,
 } from '@/features/activity/activityFormSchema'
 import CategorySelect from '@/features/activity/components/CategorySelect'
@@ -8,7 +8,7 @@ import AsyncButton from '@/lib/ui/components/AsyncButton'
 import FormField from '@/lib/ui/components/FormField'
 import Modal from '@/lib/ui/components/Modal'
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 
 interface EditActiveActivityDialogProps {
@@ -30,13 +30,14 @@ const EditActiveActivityDialog = ({
   onClose,
   onSave,
 }: EditActiveActivityDialogProps) => {
+  const schema = useMemo(() => createActiveActivitySchema(activity.date), [activity.date])
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<ActiveActivityFormValues>({
-    resolver: valibotResolver(activeActivitySchema),
+    resolver: valibotResolver(schema),
     defaultValues: createForm(activity),
   })
 

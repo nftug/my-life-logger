@@ -1,5 +1,5 @@
 import {
-  completedActivitySchema,
+  createCompletedActivitySchema,
   type CompletedActivityFormValues,
 } from '@/features/activity/activityFormSchema'
 import CategorySelect from '@/features/activity/components/CategorySelect'
@@ -8,7 +8,7 @@ import AsyncButton from '@/lib/ui/components/AsyncButton'
 import FormField from '@/lib/ui/components/FormField'
 import Modal from '@/lib/ui/components/Modal'
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 
 interface CompletedActivityDialogProps {
@@ -16,6 +16,8 @@ interface CompletedActivityDialogProps {
   categories: CategoryResponseDto[]
   open: boolean
   isSubmitting: boolean
+  date: string
+  dateLabel?: string
   createForm: (activity?: ActivityResponseDto) => CompletedActivityFormValues
   onClose: () => void
   onSave: (activityId: string | null, form: CompletedActivityFormValues) => Promise<boolean>
@@ -26,17 +28,20 @@ const CompletedActivityDialog = ({
   categories,
   open,
   isSubmitting,
+  date,
+  dateLabel = '今日',
   createForm,
   onClose,
   onSave,
 }: CompletedActivityDialogProps) => {
+  const schema = useMemo(() => createCompletedActivitySchema(date), [date])
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<CompletedActivityFormValues>({
-    resolver: valibotResolver(completedActivitySchema),
+    resolver: valibotResolver(schema),
     defaultValues: createForm(activity ?? undefined),
   })
 
@@ -53,7 +58,9 @@ const CompletedActivityDialog = ({
     <Modal.Root open={open} onClose={onClose} title={title}>
       <Modal.Header>
         <h2 className="text-xl font-semibold">{title}</h2>
-        <p className="mt-1 text-sm text-base-content/65">今日の活動として時間帯を記録します。</p>
+        <p className="mt-1 text-sm text-base-content/65">
+          {dateLabel}の活動として時間帯を記録します。
+        </p>
       </Modal.Header>
       <Modal.Body>
         <div className="grid gap-4 sm:grid-cols-2">

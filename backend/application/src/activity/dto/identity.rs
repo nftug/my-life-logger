@@ -12,6 +12,7 @@ pub struct SaveCompletedActivityIdentityDto {
 #[serde(rename_all = "camelCase")]
 pub struct DeleteCompletedActivityIdentityDto {
     pub activity_id: ActivityId,
+    pub date: NaiveDate,
 }
 
 #[derive(Debug, Deserialize)]

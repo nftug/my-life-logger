@@ -16,7 +16,16 @@ export const todayDate = () => {
   return new Date(now.getTime() - timezoneOffset).toISOString().slice(0, 10)
 }
 
+export const yesterdayDate = () => {
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  const timezoneOffset = yesterday.getTimezoneOffset() * 60_000
+  return new Date(yesterday.getTime() - timezoneOffset).toISOString().slice(0, 10)
+}
+
 export const formatToday = () => dateFormatter.format(new Date())
+
+export const formatDate = (date: string) => dateFormatter.format(new Date(`${date}T00:00:00`))
 
 export const formatTime = (iso: string) => timeFormatter.format(new Date(iso))
 
@@ -36,16 +45,18 @@ export const toDateTimeLocal = (iso: string) => {
   return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16)
 }
 
+export const defaultStartTime = (date = todayDate()) => {
+  const now = new Date()
+  return `${date}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+}
+
 export const toUtcIso = (localValue: string) => new Date(localValue).toISOString()
 
-export const isTodayLocal = (localValue: string) => localValue.slice(0, 10) === todayDate()
-
-export const defaultEndTime = () => {
-  const now = new Date()
-  const date = new Date(now.getTime() + 30 * 60_000)
-  if (date.getDate() !== now.getDate()) date.setHours(23, 59, 0, 0)
-  const timezoneOffset = date.getTimezoneOffset() * 60_000
-  return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16)
+export const defaultEndTime = (date = todayDate()) => {
+  const start = new Date(defaultStartTime(date))
+  const end = new Date(start.getTime() + 30 * 60_000)
+  if (end.getDate() !== start.getDate()) return `${date}T23:59`
+  return `${date}T${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`
 }
 
 export const errorMessage = (error: unknown) => {

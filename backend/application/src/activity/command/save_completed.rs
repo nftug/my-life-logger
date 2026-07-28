@@ -33,12 +33,13 @@ impl SaveCompletedActivityService {
             .find_by_id(request.category_id)
             .await?
             .ok_or(DomainError::CategoryNotFound)?;
+        let activity_date = ctx.tz().naive_date(request.started_at);
 
         let mut activity_state = self
             .repository
-            .load(&ctx, ctx.today())
+            .load(&ctx, activity_date)
             .await?
-            .unwrap_or(ActivityState::new(ctx.today()));
+            .unwrap_or(ActivityState::new(activity_date));
 
         activity_state.upsert_completed(
             &ctx,

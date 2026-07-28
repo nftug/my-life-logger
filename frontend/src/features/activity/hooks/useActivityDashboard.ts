@@ -10,6 +10,7 @@ import type {
 } from '@/features/activity/activityFormSchema'
 import {
   defaultEndTime,
+  defaultStartTime,
   errorMessage,
   toDateTimeLocal,
   toUtcIso,
@@ -43,8 +44,8 @@ const emptyState = (): ActivityStateResponseDto => ({
 
 const trimDescription = (description: string) => description.trim() || null
 
-export const useActivityDashboard = () => {
-  const [activityState, setActivityState] = useState<ActivityStateResponseDto>(emptyState)
+export const useActivityDashboard = (date = todayDate()) => {
+  const [activityState, setActivityState] = useState<ActivityStateResponseDto>(() => emptyState())
   const [categories, setCategories] = useState<CategoryResponseDto[]>([])
   const [activeDurationSeconds, setActiveDurationSeconds] = useState<number | null>(null)
   const [pendingAction, setPendingAction] = useState<AsyncAction>(null)
@@ -56,7 +57,7 @@ export const useActivityDashboard = () => {
     setError(null)
     try {
       const [nextState, nextCategories] = await Promise.all([
-        activityApi.getState({ identity: { date: todayDate() } }),
+        activityApi.getState({ identity: { date } }),
         categoryApi.getAll(),
       ])
       setActivityState(nextState)
@@ -67,7 +68,7 @@ export const useActivityDashboard = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [date])
 
   useEffect(() => {
     void refresh()
@@ -79,8 +80,7 @@ export const useActivityDashboard = () => {
 
     void activityApi
       .onStateEvent((event) => {
-        if (event.date === todayDate())
-          setActiveDurationSeconds(event.activeDurationSeconds ?? null)
+        if (event.date === date) setActiveDurationSeconds(event.activeDurationSeconds ?? null)
       })
       .then((unsubscribe) => {
         if (disposed) {
@@ -97,7 +97,7 @@ export const useActivityDashboard = () => {
       disposed = true
       unlisten?.()
     }
-  }, [])
+  }, [date])
 
   useEffect(() => {
     if (!notice) return
@@ -188,13 +188,11 @@ export const useActivityDashboard = () => {
   )
 
   const completedFormFor = useCallback(
-    (activity?: ActivityResponseDto): CompletedActivityFormValues => ({
+    (activity?: ActivityResponseDto, date = todayDate()): CompletedActivityFormValues => ({
       categoryId: activity?.category.id ?? categories[0]?.id ?? '',
       description: activity?.description ?? '',
-      startedAtLocal: activity
-        ? toDateTimeLocal(activity.startedAt)
-        : toDateTimeLocal(new Date().toISOString()),
-      endedAtLocal: activity?.endedAt ? toDateTimeLocal(activity.endedAt) : defaultEndTime(),
+      startedAtLocal: activity ? toDateTimeLocal(activity.startedAt) : defaultStartTime(date),
+      endedAtLocal: activity?.endedAt ? toDateTimeLocal(activity.endedAt) : defaultEndTime(date),
     }),
     [categories],
   )
@@ -252,7 +250,7 @@ export const useActivityDashboard = () => {
       deleteCompleted: (activityId: string) =>
         run(
           'delete-completed',
-          () => activityApi.deleteCompleted({ identity: { activityId } }),
+          () => activityApi.deleteCompleted({ identity: { activityId, date } }),
           '記録を削除しました。',
         ),
       completedFormFor,

@@ -1,5 +1,6 @@
 import { Dialog } from '@/lib/ui/components/Dialog'
 import CategoriesPage from '@/pages/CategoriesPage'
+import HistoryPage from '@/pages/HistoryPage'
 import IndexPage from '@/pages/IndexPage'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -14,6 +15,7 @@ createRoot(document.getElementById('root')!).render(
         <Routes>
           <Route path="/" element={<IndexPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/history" element={<HistoryPage />} />
           <Route path="*" element={<IndexPage />} />
         </Routes>
       </App>
