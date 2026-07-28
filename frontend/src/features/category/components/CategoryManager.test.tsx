@@ -48,6 +48,7 @@ describe('CategoryManager', () => {
     fireEvent.change(screen.getByPlaceholderText('例：開発、勉強、休憩'), {
       target: { value: '  休憩  ' },
     })
+    await waitFor(() => expect(screen.getByRole('button', { name: '保存' }).disabled).toBe(false))
     fireEvent.click(screen.getByRole('button', { name: '保存' }))
 
     await waitFor(() => expect(onCreate).toHaveBeenCalledWith('休憩', '#8B5CF6'))
@@ -71,20 +72,19 @@ describe('CategoryManager', () => {
       target: { value: '設計' },
     })
     fireEvent.click(screen.getByRole('radio', { name: '緑（#10B981）' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: '保存' }).disabled).toBe(false))
     fireEvent.click(screen.getByRole('button', { name: '保存' }))
 
     await waitFor(() => expect(onRename).toHaveBeenCalledWith('category-1', '設計', '#10B981'))
     expect(screen.queryByRole('dialog', { name: 'カテゴリを編集' })).toBeNull()
   })
 
-  it('shows validation errors without submitting an empty category name', async () => {
-    const { onCreate } = renderManager()
+  it('disables saving when the category name is empty', () => {
+    renderManager()
 
     fireEvent.click(screen.getByRole('button', { name: 'カテゴリを追加' }))
-    fireEvent.click(screen.getByRole('button', { name: '保存' }))
 
-    expect(await screen.findByText('カテゴリ名を入力してください。')).toBeDefined()
-    expect(onCreate).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: '保存' }).disabled).toBe(true)
   })
 
   it('discards unsaved values when the dialog is closed and reopened', () => {

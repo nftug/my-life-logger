@@ -35,9 +35,10 @@ const EditActiveActivityDialog = ({
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<ActiveActivityFormValues>({
     resolver: valibotResolver(schema),
+    mode: 'onChange',
     defaultValues: createForm(activity),
   })
 
@@ -89,6 +90,7 @@ const EditActiveActivityDialog = ({
           type="button"
           className="btn-primary"
           loading={isSubmitting}
+          disabled={!isValid}
           onClick={() => void handleSubmit(save)()}
         >
           保存

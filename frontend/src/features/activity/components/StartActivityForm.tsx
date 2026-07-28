@@ -22,18 +22,19 @@ const StartActivityForm = ({ categories, isSubmitting, onSubmit }: StartActivity
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<ActivityFormValues>({
     resolver: valibotResolver(startActivitySchema),
-    defaultValues: { categoryId: categories[0]?.id ?? '', description: '' },
+    mode: 'onChange',
+    defaultValues: { categoryId: '', description: '' },
   })
 
   useEffect(() => {
-    reset({ categoryId: categories[0]?.id ?? '', description: '' })
+    reset({ categoryId: '', description: '' })
   }, [categories, reset])
 
   const submit = async (form: ActivityFormValues) => {
-    if (await onSubmit(form)) reset({ categoryId: categories[0]?.id ?? '', description: '' })
+    if (await onSubmit(form)) reset({ categoryId: '', description: '' })
   }
 
   return (
@@ -58,7 +59,12 @@ const StartActivityForm = ({ categories, isSubmitting, onSubmit }: StartActivity
               placeholder="例：タイマー画面の実装"
             />
           </FormField>
-          <AsyncButton type="submit" className="btn-primary self-start" loading={isSubmitting}>
+          <AsyncButton
+            type="submit"
+            className="btn-primary self-start"
+            loading={isSubmitting}
+            disabled={!isValid}
+          >
             <PlayIcon className="h-4 w-4" />
             開始
           </AsyncButton>
