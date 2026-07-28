@@ -171,12 +171,12 @@ export const useActivityDashboard = (date = todayDate()) => {
 
   const completedFormFor = useCallback(
     (activity?: ActivityResponseDto, date = todayDate()): CompletedActivityFormValues => ({
-      categoryId: activity?.category.id ?? categories[0]?.id ?? '',
+      categoryId: activity?.category.id ?? '',
       description: activity?.description ?? '',
       startedAtLocal: activity ? toDateTimeLocal(activity.startedAt) : defaultStartTime(date),
       endedAtLocal: activity?.endedAt ? toDateTimeLocal(activity.endedAt) : defaultEndTime(date),
     }),
-    [categories],
+    [],
   )
 
   const activeFormFor = useCallback(

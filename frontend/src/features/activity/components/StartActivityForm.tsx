@@ -25,15 +25,15 @@ const StartActivityForm = ({ categories, isSubmitting, onSubmit }: StartActivity
     formState: { errors },
   } = useForm<ActivityFormValues>({
     resolver: valibotResolver(startActivitySchema),
-    defaultValues: { categoryId: categories[0]?.id ?? '', description: '' },
+    defaultValues: { categoryId: '', description: '' },
   })
 
   useEffect(() => {
-    reset({ categoryId: categories[0]?.id ?? '', description: '' })
+    reset({ categoryId: '', description: '' })
   }, [categories, reset])
 
   const submit = async (form: ActivityFormValues) => {
-    if (await onSubmit(form)) reset({ categoryId: categories[0]?.id ?? '', description: '' })
+    if (await onSubmit(form)) reset({ categoryId: '', description: '' })
   }
 
   return (
