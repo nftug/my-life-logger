@@ -55,9 +55,6 @@ const App = ({ children }: { children: ReactNode }) => (
             ))}
           </ul>
         </nav>
-        <p className="mt-auto px-2 pb-2 text-xs leading-relaxed text-base-content/45">
-          今日の時間を、やさしく見える化。
-        </p>
       </aside>
     </div>
   </div>
