@@ -6,7 +6,8 @@ import EditActiveActivityDialogCall from '@/features/activity/components/EditAct
 import StartActivityForm from '@/features/activity/components/StartActivityForm'
 import { useActivityDashboard } from '@/features/activity/hooks/useActivityDashboard'
 import type { ActivityResponseDto } from '@/generated/types'
-import { formatToday } from '@/lib/activity/date'
+import { formatDate } from '@/lib/activity/date'
+import { currentDateAtom } from '@/lib/state/currentDate'
 import { showDialog } from '@/lib/ui/components/Dialog'
 import EmptyState from '@/lib/ui/components/EmptyState'
 import { LoadingState } from '@/lib/ui/components/Feedback'
@@ -14,6 +15,7 @@ import PageHeader from '@/lib/ui/components/PageHeader'
 import SegmentedTabs from '@/lib/ui/components/SegmentedTabs'
 import { PlusIcon } from '@heroicons/react/24/solid'
 import { useState } from 'react'
+import { useAtomValue } from 'jotai'
 import { Link } from 'react-router-dom'
 
 type HomeTab = 'current' | 'timeline' | 'summary'
@@ -25,7 +27,8 @@ const homeTabs = [
 ] as const
 
 const IndexPage = () => {
-  const { state, actions } = useActivityDashboard()
+  const currentDate = useAtomValue(currentDateAtom)
+  const { state, actions } = useActivityDashboard(currentDate)
   const [activeTab, setActiveTab] = useState<HomeTab>('current')
 
   const openAddDialog = () =>
@@ -103,7 +106,7 @@ const IndexPage = () => {
     <div className="page-content">
       <PageHeader
         eyebrow="TODAY"
-        title={formatToday()}
+        title={formatDate(currentDate)}
         description="活動を記録して、今日の流れを振り返りましょう。"
       />
 

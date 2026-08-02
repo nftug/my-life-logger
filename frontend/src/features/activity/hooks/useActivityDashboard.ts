@@ -20,7 +20,7 @@ import { activityApi } from '@/lib/tauri/activityApi'
 import { categoryApi } from '@/lib/tauri/categoryApi'
 import { showDialog } from '@/lib/ui/components/Dialog'
 import { useActivityDurationEvent } from './useActivityDurationEvent'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 export type { ActiveActivityFormValues, ActivityFormValues, CompletedActivityFormValues }
 
@@ -45,8 +45,8 @@ const showApiError = (message: string) =>
     buttons: [{ label: '閉じる', value: 'close', variant: 'primary' }],
   })
 
-const emptyState = (): ActivityStateResponseDto => ({
-  date: todayDate(),
+const emptyState = (date: string): ActivityStateResponseDto => ({
+  date,
   activeActivity: null,
   completedActivities: [],
 })
@@ -54,32 +54,41 @@ const emptyState = (): ActivityStateResponseDto => ({
 const trimDescription = (description: string) => description.trim() || null
 
 export const useActivityDashboard = (date = todayDate()) => {
-  const [activityState, setActivityState] = useState<ActivityStateResponseDto>(() => emptyState())
+  const [activityState, setActivityState] = useState<ActivityStateResponseDto>(() =>
+    emptyState(date),
+  )
   const [categories, setCategories] = useState<CategoryResponseDto[]>([])
   const [activeDurationSeconds, setActiveDurationSeconds] = useState<number | null>(null)
   const [pendingAction, setPendingAction] = useState<AsyncAction>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [notice, setNotice] = useState<Notice | null>(null)
+  const requestVersion = useRef(0)
 
   const refresh = useCallback(async () => {
+    const version = requestVersion.current + 1
+    requestVersion.current = version
     try {
       const [nextState, nextCategories] = await Promise.all([
         activityApi.getState({ identity: { date } }),
         categoryApi.getAll(),
       ])
+      if (version !== requestVersion.current) return
       setActivityState(nextState)
       setCategories(nextCategories)
       setActiveDurationSeconds(nextState.activeActivity?.durationSeconds ?? null)
     } catch (nextError) {
-      void showApiError(errorMessage(nextError))
+      if (version === requestVersion.current) void showApiError(errorMessage(nextError))
     } finally {
-      setIsLoading(false)
+      if (version === requestVersion.current) setIsLoading(false)
     }
   }, [date])
 
   useEffect(() => {
+    setIsLoading(true)
+    setActivityState(emptyState(date))
+    setActiveDurationSeconds(null)
     void refresh()
-  }, [refresh])
+  }, [date, refresh])
 
   useActivityDurationEvent({ date, onDurationChange: setActiveDurationSeconds })
 

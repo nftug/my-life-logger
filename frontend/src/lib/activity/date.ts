@@ -16,8 +16,11 @@ export const todayDate = () => {
   return new Date(now.getTime() - timezoneOffset).toISOString().slice(0, 10)
 }
 
-export const yesterdayDate = () => {
-  const yesterday = new Date()
+export const yesterdayDate = (referenceDate: Date | string = new Date()) => {
+  const yesterday =
+    typeof referenceDate === 'string'
+      ? new Date(`${referenceDate}T00:00:00`)
+      : new Date(referenceDate)
   yesterday.setDate(yesterday.getDate() - 1)
   const timezoneOffset = yesterday.getTimezoneOffset() * 60_000
   return new Date(yesterday.getTime() - timezoneOffset).toISOString().slice(0, 10)

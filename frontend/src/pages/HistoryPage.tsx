@@ -4,6 +4,7 @@ import DailySummary from '@/features/activity/components/DailySummary'
 import { useActivityDashboard } from '@/features/activity/hooks/useActivityDashboard'
 import type { ActivityResponseDto } from '@/generated/types'
 import { formatDate, yesterdayDate } from '@/lib/activity/date'
+import { currentDateAtom } from '@/lib/state/currentDate'
 import { showDialog } from '@/lib/ui/components/Dialog'
 import EmptyState from '@/lib/ui/components/EmptyState'
 import { LoadingState } from '@/lib/ui/components/Feedback'
@@ -11,6 +12,7 @@ import PageHeader from '@/lib/ui/components/PageHeader'
 import SegmentedTabs from '@/lib/ui/components/SegmentedTabs'
 import { PlusIcon } from '@heroicons/react/24/solid'
 import { useCallback, useState } from 'react'
+import { useAtomValue } from 'jotai'
 
 type HistoryTab = 'timeline' | 'summary'
 
@@ -20,6 +22,7 @@ const historyTabs = [
 ] as const
 
 const HistoryPage = () => {
+  const currentDate = useAtomValue(currentDateAtom)
   const [selectedDate, setSelectedDate] = useState(yesterdayDate)
   const [activeTab, setActiveTab] = useState<HistoryTab>('timeline')
   const { state, actions } = useActivityDashboard(selectedDate)
@@ -107,7 +110,7 @@ const HistoryPage = () => {
                 type="date"
                 className="input input-bordered w-full sm:w-48"
                 value={selectedDate}
-                max={yesterdayDate()}
+                max={yesterdayDate(currentDate)}
                 onChange={(event) => {
                   if (event.target.value) setSelectedDate(event.target.value)
                 }}
